@@ -2,6 +2,7 @@ package controllers
 
 import javax.inject.Inject
 
+import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{Action, Controller}
 import services.ResultsService
@@ -17,16 +18,12 @@ class ResultsController @Inject()(resultsService: ResultsService) extends Contro
 //      Ok(Json.toJson(results))
 //    }
 //  }
-//
-//  def uploadSession(sessionId: String) = Action.async(parse.multipartFormData) { request =>
-//    resultsService.uploadExtractAndLoadResults(sessionId, request.body.files)
-//      .map { results =>
-//        Ok(Json.toJson(results))
-//      }
-////      .recover {
-////        case e: NoSuchElementException => NotFound(e.toString)
-////        case e: Exception => BadRequest(e.toString)
-////      }
-//  }
+
+  def uploadResults(sessionId: Int) = Action.async(parse.multipartFormData) { request =>
+    resultsService.uploadExtractAndLoadResults(sessionId, request.body.files)
+      .map { results =>
+        Ok(Json.toJson(results))
+      }
+  }
 
 }

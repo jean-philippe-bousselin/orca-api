@@ -3,7 +3,7 @@ package models
 import play.api.libs.json._
 
 case class Result(
-  id: String,
+  id: Int,
   position: Int,
   classPosition: Int,
   classCar: String,
@@ -20,7 +20,7 @@ case class Result(
   club: String,
   points: Int,
   penaltyPoints: Int,
-  sessionId: String
+  sessionId: Int
 ) {}
 
 object Result {
