@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- SQL XML created by WWW SQL Designer, https://github.com/ondras/wwwsqldesigner/ -->
+<!-- Active URL: http://ondras.zarovi.cz/sql/demo/?keyword=default -->
+<sql>
+    <datatypes db="mysql">
+        <group color="rgb(238,238,170)" label="Numeric">
+            <type label="Integer" quote="" sql="INTEGER" length="0"/>
+            <type label="TINYINT" quote="" sql="TINYINT" length="0"/>
+            <type label="SMALLINT" quote="" sql="SMALLINT" length="0"/>
+            <type label="MEDIUMINT" quote="" sql="MEDIUMINT" length="0"/>
+            <type label="INT" quote="" sql="INT" length="0"/>
+            <type label="BIGINT" quote="" sql="BIGINT" length="0"/>
+            <type label="Decimal" quote="" sql="DECIMAL" length="1" re="DEC"/>
+            <type label="Single precision" quote="" sql="FLOAT" length="0"/>
+            <type label="Double precision" quote="" sql="DOUBLE" length="0" re="DOUBLE"/>
+        </group>
+
+        <group color="rgb(255,200,200)" label="Character">
+            <type label="Char" quote="'" sql="CHAR" length="1"/>
+            <type label="Varchar" quote="'" sql="VARCHAR" length="1"/>
+            <type label="Text" quote="'" sql="MEDIUMTEXT" length="0" re="TEXT"/>
+            <type label="Binary" quote="'" sql="BINARY" length="1"/>
+            <type label="Varbinary" quote="'" sql="VARBINARY" length="1"/>
+            <type label="BLOB" quote="'" sql="BLOB" length="0" re="BLOB"/>
+        </group>
+
+        <group color="rgb(200,255,200)" label="Date &amp; Time">
+            <type label="Date" quote="'" sql="DATE" length="0"/>
+            <type label="Time" quote="'" sql="TIME" length="0"/>
+            <type label="Datetime" quote="'" sql="DATETIME" length="0"/>
+            <type label="Year" quote="" sql="YEAR" length="0"/>
+            <type label="Timestamp" quote="'" sql="TIMESTAMP" length="0"/>
+        </group>
+
+        <group color="rgb(200,200,255)" label="Miscellaneous">
+            <type label="ENUM" quote="" sql="ENUM" length="1"/>
+            <type label="SET" quote="" sql="SET" length="1"/>
+            <type label="Bit" quote="" sql="bit" length="0"/>
+        </group>
+    </datatypes><table x="86" y="133" name="championships">
+    <row name="id" null="0" autoincrement="1">
+        <datatype>INTEGER</datatype>
+        <default>NULL</default></row>
+    <row name="name" null="0" autoincrement="0">
+        <datatype>VARCHAR(250)</datatype>
+        <default>'NULL'</default></row>
+    <row name="description" null="1" autoincrement="0">
+        <datatype>MEDIUMTEXT</datatype>
+        <default>NULL</default></row>
+    <key type="PRIMARY" name="">
+        <part>id</part>
+    </key>
+</table>
+    <table x="296" y="122" name="sessions">
+        <row name="id" null="0" autoincrement="1">
+            <datatype>INTEGER</datatype>
+            <default>NULL</default></row>
+        <row name="name" null="1" autoincrement="0">
+            <datatype>VARCHAR(250)</datatype>
+            <default>NULL</default></row>
+        <row name="date" null="0" autoincrement="0">
+            <datatype>VARCHAR</datatype>
+            <default>'NULL'</default></row>
+        <row name="time" null="0" autoincrement="0">
+            <datatype>VARCHAR</datatype>
+            <default>'NULL'</default></row>
+        <row name="championship_id" null="0" autoincrement="0">
+            <datatype>INTEGER</datatype>
+            <default>NULL</default><relation table="championships" row="id" />
+        </row>
+        <key type="PRIMARY" name="">
+            <part>id</part>
+        </key>
+    </table>
+    <table x="508" y="54" name="results">
+        <row name="id" null="1" autoincrement="1">
+            <datatype>INTEGER</datatype>
+            <default>NULL</default></row>
+        <row name="position" null="0" autoincrement="0">
+            <datatype>INTEGER</datatype>
+            <default>NULL</default></row>
+        <row name="class_position" null="1" autoincrement="0">
+            <datatype>INTEGER</datatype>
+            <default>NULL</default></row>
+        <row name="class_car" null="0" autoincrement="0">
+            <datatype>VARCHAR</datatype>
+            <default>'NULL'</default></row>
+        <row name="car_number" null="0" autoincrement="0">
+            <datatype>VARCHAR</datatype>
+            <default>'NULL'</default></row>
+        <row name="full_name" null="0" autoincrement="0">
+            <datatype>VARCHAR(250)</datatype>
+            <default>'NULL'</default></row>
+        <row name="start_position" null="1" autoincrement="0">
+            <datatype>INTEGER</datatype>
+            <default>NULL</default></row>
+        <row name="interval" null="1" autoincrement="0">
+            <datatype>VARCHAR</datatype>
+            <default>NULL</default></row>
+        <row name="laps_led" null="1" autoincrement="0">
+            <datatype>INTEGER</datatype>
+            <default>NULL</default></row>
+        <row name="average_lap" null="1" autoincrement="0">
+            <datatype>VARCHAR</datatype>
+            <default>NULL</default></row>
+        <row name="fastest_lap" null="1" autoincrement="0">
+            <datatype>VARCHAR</datatype>
+            <default>NULL</default></row>
+        <row name="fastest_lap_number" null="1" autoincrement="0">
+            <datatype>VARCHAR</datatype>
+            <default>NULL</default></row>
+        <row name="total_laps" null="1" autoincrement="0">
+            <datatype>INTEGER</datatype>
+            <default>NULL</default></row>
+        <row name="incidents" null="1" autoincrement="0">
+            <datatype>INTEGER</datatype>
+            <default>NULL</default></row>
+        <row name="club" null="1" autoincrement="0">
+            <datatype>VARCHAR</datatype>
+            <default>NULL</default></row>
+        <row name="points" null="1" autoincrement="0">
+            <datatype>INTEGER</datatype>
+            <default>NULL</default></row>
+        <row name="penalty_points" null="1" autoincrement="0">
+            <datatype>INTEGER</datatype>
+            <default>NULL</default></row>
+        <row name="session_id" null="0" autoincrement="0">
+            <datatype>INTEGER</datatype>
+            <default>NULL</default><relation table="sessions" row="id" />
+        </row>
+        <key type="PRIMARY" name="">
+            <part>id</part>
+        </key>
+    </table>
+</sql>

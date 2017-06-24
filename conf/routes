@@ -1,0 +1,20 @@
+OPTIONS    /          controllers.HomeController.options(path: String ?= "")
+OPTIONS    /*path     controllers.HomeController.options(path)
+
+# Tracks
+GET        /tracks                 controllers.TracksController.index
+POST       /tracks                 controllers.TracksController.add
+
+# Championships
+GET        /championships                   controllers.ChampionshipsController.index
+GET        /championships/:id               controllers.ChampionshipsController.findById(id: Int)
+# GET        /championships/:id/standings     controllers.ChampionshipsController.standings(id: String)
+GET        /championships/:id/sessions      controllers.SessionsController.getAll(id: Int)
+POST       /championships/:id/sessions      controllers.ChampionshipsController.addSession(id: Int)
+POST       /championships                   controllers.ChampionshipsController.add
+
+# Sessions
+GET         /sessions/:id                   controllers.SessionsController.find(id: Int)
+# GET        /sessions/:sessionId/results       controllers.ResultsController.getForSession(sessionId: String)
+# POST       /sessions                          controllers.SessionsController.add
+# POST       /sessions/:sessionId/upload        controllers.ResultsController.uploadSession(sessionId: String)
