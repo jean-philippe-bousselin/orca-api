@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject.Inject
 
-import models.{Championship, Session}
+import models.{Championship, Session, SessionType}
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{Action, Controller}
@@ -53,6 +53,16 @@ class ChampionshipsController @Inject()(
         }
       }
     )
+  }
+
+  def getSessionTypes(id: Int) = Action.async { implicit request =>
+    Future {
+      Ok(Json.toJson(Seq(
+        SessionType(1, "Sprint"),
+        SessionType(2, "Feature"),
+        SessionType(3, "Endurance")
+      )))
+    }
   }
 
 //
