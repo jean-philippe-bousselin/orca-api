@@ -13,6 +13,7 @@ GET        /championships/:id/sessions      controllers.SessionsController.getAl
 GET        /championships/:id/session-types controllers.ChampionshipsController.getSessionTypes(id: Int)
 POST       /championships/:id/sessions      controllers.ChampionshipsController.addSession(id: Int)
 POST       /championships                   controllers.ChampionshipsController.add
+POST       /championships/:id/configure     controllers.ChampionshipsController.configure(id: Int)
 
 # Sessions
 GET         /sessions/:id                   controllers.SessionsController.find(id: Int)

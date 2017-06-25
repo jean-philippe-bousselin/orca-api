@@ -10,7 +10,10 @@ import play.api.db._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ChampionshipDao @Inject()(override val db: Database) extends DaoTrait {
+class ChampionshipDao @Inject()(
+  override val db: Database,
+  sessionTypeDao: SessionTypeDao
+) extends DaoTrait {
 
   type T = Championship
 
@@ -36,6 +39,15 @@ class ChampionshipDao @Inject()(override val db: Database) extends DaoTrait {
       implicit val conn = db.getConnection()
       val insertedId = insert(getColumnMapping(championship))
       championship.copy(id = insertedId)
+    }
+  }
+
+  def saveConfiguration(id: Int, configuration: ChampionshipConfiguration) : Future[Boolean] = {
+    Future {
+      configuration.sessionTypes.map { sessionType =>
+        sessionTypeDao.add(id, sessionType)
+      }
+      true
     }
   }
 }

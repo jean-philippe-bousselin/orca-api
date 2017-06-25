@@ -1,14 +1,30 @@
 package models
 
+import play.api.data._
+import play.api.data.Forms.{mapping, _}
 import play.api.libs.json.{Json, OWrites}
 
 case class SessionType(
   id: Int,
-  name: String
+  name: String,
+  points: Seq[Int],
+  incidentsLimit: Int,
+  penaltyPoints: Int
 ) {}
 
 object SessionType {
 
   implicit val writes: OWrites[SessionType] = Json.writes[SessionType]
 
+  def getMapping() = mapping(
+    "id" -> ignored(0),
+    "name" -> nonEmptyText,
+    "points" -> seq(number),
+    "incidentsLimit" -> number,
+    "penaltyPoints" -> number
+  )(SessionType.apply)(SessionType.unapply)
+
+  val form: Form[SessionType] = Form(
+    getMapping()
+  )
 }

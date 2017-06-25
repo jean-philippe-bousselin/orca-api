@@ -10,7 +10,10 @@ import play.api.db._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class SessionDao @Inject()(override val db: Database, trackDao: TrackDao) extends DaoTrait {
+class SessionDao @Inject()(
+  override val db: Database,
+  trackDao: TrackDao
+) extends DaoTrait with ChampionshipIdMapping {
 
   type T = Session
 
@@ -35,10 +38,6 @@ class SessionDao @Inject()(override val db: Database, trackDao: TrackDao) extend
       resultSet.getString("time"),
       trackDao.resultSetToModel(resultSet)
     )
-  }
-
-  def championshipIdMapping(championshipId: Int) : Map[String, Any] = {
-    Map("championship_id" -> championshipId)
   }
 
   def add(championshipId: Int, session: Session) : Future[Session] = {

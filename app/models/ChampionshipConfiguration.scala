@@ -1,11 +1,22 @@
 package models
 
+import play.api.data._
+import play.api.data.Forms._
 import play.api.libs.json.{Json, OWrites}
 
 case class ChampionshipConfiguration(
-  raceTypes: Seq[RaceType]
-) {}
+  sessionTypes: Seq[SessionType],
+  subClasses: Option[Seq[String]]
+) { }
 
 object ChampionshipConfiguration {
-  implicit val configWrites: OWrites[ChampionshipConfiguration] = Json.writes[ChampionshipConfiguration]
+
+  implicit val writes: OWrites[ChampionshipConfiguration] = Json.writes[ChampionshipConfiguration]
+
+  val form: Form[ChampionshipConfiguration] = Form(
+    mapping(
+      "sessionTypes" -> seq(SessionType.getMapping()),
+      "subClasses" -> optional(seq(text))
+    )(ChampionshipConfiguration.apply)(ChampionshipConfiguration.unapply)
+  )
 }

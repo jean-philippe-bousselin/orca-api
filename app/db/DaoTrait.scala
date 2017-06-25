@@ -142,3 +142,9 @@ trait DaoTrait {
   }
 
 }
+
+trait ChampionshipIdMapping {
+  def championshipIdMapping(championshipId: Int) : Map[String, Any] = {
+    Map("championship_id" -> championshipId)
+  }
+}

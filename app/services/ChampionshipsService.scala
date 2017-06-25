@@ -3,7 +3,7 @@ package services
 import javax.inject.Inject
 
 import db.ChampionshipDao
-import models.{Championship, Result, Session}
+import models.{Championship, ChampionshipConfiguration, Result, Session}
 import play.api.libs.json.{JsValue, Json}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -25,6 +25,9 @@ class ChampionshipsService @Inject()(
     championshipDao.find(id)
   }
 
+  def configure(id: Int, configuration: ChampionshipConfiguration) : Future[Boolean] = {
+    championshipDao.saveConfiguration(id, configuration)
+  }
 
 //  def getSessions(id: Int) : Future[Seq[Session]] = {
 //    sessionMongo.getForChampionship(id)

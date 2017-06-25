@@ -1,6 +1,6 @@
 package services
 
-import models.{Championship, RaceType, Result, Session}
+import models.{Championship, Result, Session, SessionType}
 import java.io.File
 import javax.inject.Inject
 
@@ -63,16 +63,16 @@ class ResultsService @Inject()(
 
 
   private def calculatePointsAndPenalties(
-    raceType: RaceType,
+    sessionType: SessionType,
     results: Seq[Result]
   ) : Future[Seq[Result]] = Future {
 
     results.map { result =>
       val points = result.position match {
-        case pos if pos < raceType.points.length => raceType.points(pos - 1)
+        case pos if pos < sessionType.points.length => sessionType.points(pos - 1)
         case _ => 0
       }
-      val penaltyPoints = (result.incidents / raceType.incidentsLimit) * raceType.penalty
+      val penaltyPoints = (result.incidents / sessionType.incidentsLimit) * sessionType.penaltyPoints
       result.copy(
         points = points,
         penaltyPoints = penaltyPoints
