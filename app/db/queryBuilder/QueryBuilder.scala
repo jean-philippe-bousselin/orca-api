@@ -145,7 +145,7 @@ case class QueryBuilder private (
   private def buildJoinsString() : String = {
     joins.get.foldLeft("")(
       (statementsString, joinStatement ) => {
-        statementsString + joinStatement.toSqlString()
+        statementsString + " " + joinStatement.toSqlString()
       }
     )
   }

@@ -20,7 +20,10 @@ class SessionDao @Inject()(
   type T = Session
 
   override val tableName = "sessions"
-  override val tableDependencies: Map[String, String] = Map("track_id" -> trackDao.tableName)
+  override val tableDependencies: Map[String, String] = Map(
+    "track_id" -> trackDao.tableName,
+    "session_type_id" -> sessionTypeDao.tableName
+  )
   override val orderByDefaultColumns: Seq[String] = Seq("date")
 
   override def getColumnMapping(session: Session): Map[String, Any] = {
