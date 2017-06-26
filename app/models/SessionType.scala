@@ -16,6 +16,16 @@ object SessionType {
 
   implicit val writes: OWrites[SessionType] = Json.writes[SessionType]
 
+  def getMappingWithMandatoryId() : Mapping[SessionType] = {
+    mapping(
+      "id" -> number,
+      "name" -> nonEmptyText,
+      "points" -> seq(number),
+      "incidentsLimit" -> number,
+      "penaltyPoints" -> number
+    )(SessionType.apply)(SessionType.unapply)
+  }
+
   def getMapping() = mapping(
     "id" -> ignored(0),
     "name" -> nonEmptyText,

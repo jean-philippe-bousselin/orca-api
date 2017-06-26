@@ -9,7 +9,8 @@ case class Session(
   name: String,
   date: String,
   time: String,
-  track: Track
+  track: Track,
+  sessionType: SessionType
 ) {}
 
 object Session {
@@ -21,7 +22,8 @@ object Session {
     "name" -> text,
     "date" -> text,
     "time" -> text,
-    "track" -> Track.getMappingWithMandatoryId()
+    "track" -> Track.getMappingWithMandatoryId(),
+    "sessionType" -> SessionType.getMappingWithMandatoryId()
   )(Session.apply)(Session.unapply)
 
   val form: Form[Session] = Form(getMapping())

@@ -5,6 +5,7 @@ import javax.inject.Inject
 
 import db.queryBuilder.{SqlClause, SqlComparators}
 import models.Session
+import play.api.Logger
 import play.api.db._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -12,7 +13,8 @@ import scala.concurrent.Future
 
 class SessionDao @Inject()(
   override val db: Database,
-  trackDao: TrackDao
+  trackDao: TrackDao,
+  sessionTypeDao: SessionTypeDao
 ) extends DaoTrait with ChampionshipIdMapping {
 
   type T = Session
@@ -26,7 +28,8 @@ class SessionDao @Inject()(
       "name" -> session.name,
       "date" -> session.date,
       "time" -> session.time,
-      "track_id" -> session.track.id
+      "track_id" -> session.track.id,
+      "session_type_id" -> session.sessionType.id
     )
   }
 
@@ -36,7 +39,8 @@ class SessionDao @Inject()(
       resultSet.getString("name"),
       resultSet.getString("date"),
       resultSet.getString("time"),
-      trackDao.resultSetToModel(resultSet)
+      trackDao.resultSetToModel(resultSet),
+      sessionTypeDao.resultSetToModel(resultSet)
     )
   }
 

@@ -56,8 +56,8 @@ class ChampionshipsController @Inject()(
   }
 
   def getSessionTypes(id: Int) = Action.async { implicit request =>
-    Future {
-      Ok("")
+    championshipService.getConfiguration(id).map { configuration =>
+      Ok(Json.toJson(configuration.sessionTypes))
     }
   }
 
