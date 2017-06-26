@@ -3,7 +3,8 @@ package db
 import java.sql.{Connection, ResultSet}
 import javax.inject.Inject
 
-import models.{Championship, ChampionshipConfiguration}
+import db.queryBuilder.{SqlClause, SqlComparators}
+import models.{Championship, ChampionshipConfiguration, SessionType}
 import play.api.Logger
 import play.api.db._
 
@@ -18,6 +19,7 @@ class ChampionshipDao @Inject()(
   type T = Championship
 
   override val tableName = "championships"
+  val foreignKey = "championship_id"
 
   override def getColumnMapping(champ: Championship): Map[String, Any] = {
     Map(
@@ -50,4 +52,12 @@ class ChampionshipDao @Inject()(
       true
     }
   }
+
+  def getConfiguration(id: Int) : Future[ChampionshipConfiguration] = {
+    val clause = SqlClause(foreignKey, id, SqlComparators.EQUALS, sessionTypeDao.tableName)
+    sessionTypeDao.getWhere(clause).map { sessionTypes =>
+      ChampionshipConfiguration(sessionTypes, None)
+    }
+  }
+
 }

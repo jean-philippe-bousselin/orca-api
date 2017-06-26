@@ -75,6 +75,13 @@ class ChampionshipsController @Inject()(
     )
   }
 
+  def getConfiguration(id: Int) = Action.async { implicit request =>
+    championshipService.getConfiguration(id).map { configuration =>
+      Ok(Json.toJson(configuration))
+    }
+  }
+
+
 //
 //  def standings(id : String) = Action.async { implicit request =>
 //    championshipService.buildStandings(id).map { standings =>

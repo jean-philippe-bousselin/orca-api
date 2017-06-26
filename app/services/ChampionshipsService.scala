@@ -29,6 +29,10 @@ class ChampionshipsService @Inject()(
     championshipDao.saveConfiguration(id, configuration)
   }
 
+  def getConfiguration(id: Int) : Future[ChampionshipConfiguration] = {
+    championshipDao.getConfiguration(id)
+  }
+
 //  def getSessions(id: Int) : Future[Seq[Session]] = {
 //    sessionMongo.getForChampionship(id)
 //  }

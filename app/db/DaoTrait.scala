@@ -67,10 +67,14 @@ trait DaoTrait {
 
   }
 
-  def find(id: Int)(implicit ct: ClassTag[T]) : Future[Option[T]] =  {
-    getWhere(Seq(SqlClause("id", id, SqlComparators.EQUALS, tableName))).map {
-        case head::list => Some(head)
-        case _ => None
+  def find(id: Int)(implicit ct: ClassTag[T]) : Future[Option[T]] = {
+    find(SqlClause("id", id, SqlComparators.EQUALS, tableName))
+  }
+
+  def find(whereClause: SqlClause)(implicit ct: ClassTag[T]) : Future[Option[T]] = {
+    getWhere(Seq(whereClause)).map {
+      case head :: list => Some(head)
+      case _ => None
     }
   }
 
@@ -139,6 +143,13 @@ trait DaoTrait {
 
   protected def getSelectBaseBuilder() : QueryBuilder = {
     queryBuilder.select().from(tableName)
+  }
+
+  protected def oneOrNone(resultList : Seq[T]) = {
+    resultList.map {
+      case head::list => Some(head)
+      case _ => None
+    }
   }
 
 }
