@@ -24,6 +24,14 @@ case class QueryBuilder private (
     copy(queryType = QueryTypes.INSERT)
   }
 
+  def delete() : QueryBuilder = {
+    copy(queryType = QueryTypes.DELETE)
+  }
+
+  def update(tableName: String) : QueryBuilder = {
+    copy(queryType = QueryTypes.UPDATE, from = tableName)
+  }
+
   def from(tableName: String) : QueryBuilder = {
     copy(from = tableName)
   }
@@ -72,13 +80,21 @@ case class QueryBuilder private (
     copy(values = values)
   }
 
+  def set(values: Map[String, Any]) : QueryBuilder = {
+    copy(values = values)
+  }
+
   def toPreparedStatement()(implicit conn: Connection) : PreparedStatement = {
     val query = toSqlString()
     val prepStmt: PreparedStatement = conn.prepareStatement(query)
 
-    getQueryParams().values.zipWithIndex.foreach {
-      case(column, i) => prepareParameter(column, i + 1, prepStmt)
-    }
+    getQueryParams().foldLeft(1)(
+      (index, statement) => {
+        prepareParameter(statement._2, index, prepStmt)
+        index + 1
+      }
+    )
+
     prepStmt
   }
 
@@ -86,16 +102,25 @@ case class QueryBuilder private (
     val queryString: String = queryType match {
       case QueryTypes.SELECT => buildSelectQueryString()
       case QueryTypes.INSERT => buildInsertQueryString()
+      case QueryTypes.DELETE => buildDeleteQueryString()
+      case QueryTypes.UPDATE => buildUpdateQueryString()
       case _ => throw new Exception("Cannot build query for unknown query type.")
     }
     Logger.debug(queryString)
     queryString
   }
 
-  private def getQueryParams() : Map[String, Any] = {
+  /**
+    * Returns the list of params for the query
+    * Uses Seq instead of Map to keep order
+    *
+    * @return
+    */
+  private def getQueryParams() : Seq[(String, Any)]  = {
     queryType match {
-      case QueryTypes.INSERT => values
-      case _ => getWhereAsMap() ++ getAndAsMap()
+      case QueryTypes.INSERT => values.toSeq
+      case QueryTypes.UPDATE => values.toSeq ++ getWhereAsMap().toSeq ++ getAndAsMap().toSeq
+      case _ => (getWhereAsMap() ++ getAndAsMap()).toSeq
     }
   }
 
@@ -193,6 +218,9 @@ case class QueryBuilder private (
   private def getValuesString() : String = {
     values.map(_ => "?").mkString(",")
   }
+  private def getValuesWithColumnsString() : String = {
+    values.keys.map(_ + " = ?").mkString(",")
+  }
   private def getFromString() : String = {
     "FROM " + from
   }
@@ -211,9 +239,36 @@ case class QueryBuilder private (
       getLimitString()
     )
   }
+  private def buildDeleteQuery() : Seq[String] = {
+    Seq(
+      QueryTypes.DELETE,
+      getFromString(),
+      getJoinsString(),
+      getWhereString(),
+      getAndString(),
+      getLimitString()
+    )
+  }
+  private def buildUpdateQuery() : Seq[String] = {
+    Seq(
+      QueryTypes.UPDATE,
+      from,
+      "SET",
+      getValuesWithColumnsString(),
+      getWhereString(),
+      getAndString()
+    )
+  }
   private def buildInsertQueryString() : String = {
     buildInsertQuery().filter(_ != "").mkString(" ")
   }
+  private def buildDeleteQueryString() : String = {
+    buildDeleteQuery().filter(_ != "").mkString(" ")
+  }
+  private def buildUpdateQueryString() : String = {
+    buildUpdateQuery().filter(_ != "").mkString(" ")
+  }
+
   private def buildInsertQuery() : Seq[String] = {
     if(values.isEmpty) {
       throw new Exception("Can't perform insert without data.")

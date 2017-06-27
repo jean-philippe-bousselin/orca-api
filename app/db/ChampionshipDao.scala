@@ -14,7 +14,7 @@ import scala.concurrent.Future
 class ChampionshipDao @Inject()(
   override val db: Database,
   sessionTypeDao: SessionTypeDao
-) extends DaoTrait {
+) extends DaoTrait with ChampionshipIdMapping {
 
   type T = Championship
 
@@ -47,7 +47,17 @@ class ChampionshipDao @Inject()(
   def saveConfiguration(id: Int, configuration: ChampionshipConfiguration) : Future[Boolean] = {
     Future {
       configuration.sessionTypes.map { sessionType =>
-        sessionTypeDao.add(id, sessionType)
+        // @TODO handle deleted types here
+        sessionTypeDao.find(sessionType.id).map {
+          case Some(st) => {
+            val whereClause = SqlClause("id", sessionType.id, SqlComparators.EQUALS)
+            sessionTypeDao.update(
+              sessionTypeDao.getColumnMapping(sessionType),
+              whereClause
+            )
+          }
+          case None => sessionTypeDao.add(id, sessionType)
+        }
       }
       true
     }

@@ -106,6 +106,7 @@ trait DaoTrait {
     }
   }
 
+  // @TODO refactor this, executeBuilder should be more generic
   protected def executeBuilder(builder: QueryBuilder = getSelectBaseBuilder()) : Seq[T] = {
     implicit val conn: Connection = db.getConnection()
     val out = new ListBuffer[T]()
@@ -149,6 +150,36 @@ trait DaoTrait {
     resultList.map {
       case head::list => Some(head)
       case _ => None
+    }
+  }
+
+  def delete(whereClause: SqlClause) : Unit = {
+    implicit val conn: Connection = db.getConnection()
+    try {
+      queryBuilder
+        .delete()
+        .from(tableName)
+        .where(whereClause)
+        .toPreparedStatement()
+        .execute()
+    } finally {
+      conn.close()
+    }
+  }
+
+  def update(mapping: Map[String, Any], whereClause: SqlClause) : Any = {
+    implicit val conn: Connection = db.getConnection()
+    try {
+      queryBuilder
+        .update(tableName)
+        .set(mapping)
+        .where(whereClause)
+        .toPreparedStatement()
+        .execute()
+    } catch {
+      case e: Exception => Logger.error(e.getMessage)
+    } finally {
+      conn.close()
     }
   }
 

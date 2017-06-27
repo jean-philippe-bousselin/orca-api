@@ -64,7 +64,7 @@ class ChampionshipsController @Inject()(
   def configure(id: Int) = Action.async { implicit request =>
     ChampionshipConfiguration.form.bindFromRequest.fold(
       formWithErrors => {
-        Future.successful(BadRequest(Json.toJson(formWithErrors.toString)))
+        Future.successful(BadRequest(Json.toJson(formWithErrors.errors.map(_.toString))))
       },
       configuration => {
         championshipService.configure(id, configuration).map { isSuccess =>

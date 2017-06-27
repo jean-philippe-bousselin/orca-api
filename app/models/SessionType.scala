@@ -27,7 +27,7 @@ object SessionType {
   }
 
   def getMapping() = mapping(
-    "id" -> ignored(0),
+    "id" -> number,
     "name" -> nonEmptyText,
     "points" -> seq(number),
     "incidentsLimit" -> number,
