@@ -1,38 +1,33 @@
 package db.queryBuilder
 
-case class SqlClause (leftOperand: String, rightOperand: Any, comparator: String, table: String = "") {
+case class Predicate(leftOperand: String, rightOperand: Any, comparator: String, table: Table) {
 
   def toSqlString() : String = {
     comparator match {
       case SqlComparators.IN => inComparison()
       case _ => regularComparisonString()
     }
-
   }
 
   private def inComparison() : String = {
     // @TODO handle subrequests
-    prependPrefix()  + leftOperand.toString + " IN (" +
+    prependAlias()  + leftOperand.toString + " IN (" +
       rightOperand.asInstanceOf[Seq[Any]].mkString(",") +
       ")"
   }
 
   private def regularComparisonString() : String = {
-    prependPrefix() + leftOperand.toString + " " + comparator + " ?"
+    prependAlias() + leftOperand.toString + " " + comparator + " ?"
   }
 
-  private def prependPrefix() : String = {
-    if(table.nonEmpty){
-      table + "."
-    } else {
-      ""
-    }
+  private def prependAlias() : String = {
+    table.alias + "."
   }
 
 
 }
 
-object SqlClause {}
+object Predicate {}
 
 object SqlComparators {
   val GREATER_THAN = ">"

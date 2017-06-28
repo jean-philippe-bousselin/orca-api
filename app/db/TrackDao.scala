@@ -3,6 +3,7 @@ package db
 import java.sql.ResultSet
 import javax.inject.Inject
 
+import db.queryBuilder.Table
 import models.Track
 import play.api.Logger
 import play.api.db._
@@ -14,7 +15,12 @@ class TrackDao @Inject()(override val db: Database) extends DaoTrait {
 
   type T = Track
 
-  override val tableName = "tracks"
+  override val table = Table(
+    "tracks",
+    "t",
+    Seq("id", "name", "thumbnail_url")
+  )
+
   override val orderByDefaultColumns: Seq[String] = Seq("name")
 
   override def getColumnMapping(track: Track): Map[String, Any] = {
@@ -26,9 +32,9 @@ class TrackDao @Inject()(override val db: Database) extends DaoTrait {
 
   override def resultSetToModel(resultSet: ResultSet) : Track = {
     Track(
-      resultSet.getInt("id"),
-      resultSet.getString("name"),
-      Some(resultSet.getString("thumbnail_url"))
+      resultSet.getInt(table.alias + ".id"),
+      resultSet.getString(table.alias + ".name"),
+      Some(resultSet.getString(table.alias + ".thumbnail_url"))
     )
   }
 

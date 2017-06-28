@@ -1,8 +1,8 @@
 package db
 
-import java.sql.{Connection, PreparedStatement, ResultSet}
+import java.sql.{Connection, ResultSet}
 
-import db.queryBuilder.{JoinStatement, QueryBuilder, SqlClause, SqlComparators}
+import db.queryBuilder._
 import play.api.Logger
 import play.api.db.Database
 
@@ -16,10 +16,9 @@ trait DaoTrait {
   type T
 
   val db: Database
-  val tableName: String
-  val tableDependencies: Map[String, String] = Map.empty
+  val table: Table
+  val tableDependencies: Map[String, Table] = Map.empty
   val orderByDefaultColumns: Seq[String] = Seq.empty
-
   val queryBuilder = QueryBuilder()
 
   /**
@@ -54,7 +53,7 @@ trait DaoTrait {
 
       queryBuilder
         .insert()
-        .into(tableName)
+        .into(table)
         .values(data)
         .toPreparedStatement()
         .execute()
@@ -68,10 +67,10 @@ trait DaoTrait {
   }
 
   def find(id: Int)(implicit ct: ClassTag[T]) : Future[Option[T]] = {
-    find(SqlClause("id", id, SqlComparators.EQUALS, tableName))
+    find(Predicate("id", id, SqlComparators.EQUALS, table))
   }
 
-  def find(whereClause: SqlClause)(implicit ct: ClassTag[T]) : Future[Option[T]] = {
+  def find(whereClause: Predicate)(implicit ct: ClassTag[T]) : Future[Option[T]] = {
     getWhere(Seq(whereClause)).map {
       case head :: list => Some(head)
       case _ => None
@@ -87,11 +86,11 @@ trait DaoTrait {
     getWhere(Seq.empty)
   }
 
-  def getWhere(where: SqlClause)(implicit ct: ClassTag[T]) : Future[Seq[T]] = {
+  def getWhere(where: Predicate)(implicit ct: ClassTag[T]) : Future[Seq[T]] = {
     getWhere(Seq(where))
   }
 
-  def getWhere(where: Seq[SqlClause])(implicit ct: ClassTag[T]) : Future[Seq[T]] = Future {
+  def getWhere(where: Seq[Predicate])(implicit ct: ClassTag[T]) : Future[Seq[T]] = Future {
     where match {
       case Nil => executeBuilder(getSelectBaseBuilder())
       case head :: Nil => executeBuilder(getSelectBaseBuilder().where(head))
@@ -123,6 +122,14 @@ trait DaoTrait {
     out.toList
   }
 
+  protected def processResults(results: ResultSet) : Seq[T] = {
+    val out = new ListBuffer[T]()
+    while (results.next()) {
+      out += resultSetToModel(results)
+    }
+    out.toList
+  }
+
   protected def finalizeBuilder(builder: QueryBuilder) : QueryBuilder = {
     addOrderBy(addJoins(builder))
   }
@@ -137,13 +144,15 @@ trait DaoTrait {
   protected def addJoins(builder: QueryBuilder) : QueryBuilder = {
     tableDependencies.foldLeft(builder)(
       (builder, dependency) => {
-        builder.join(JoinStatement(tableName, dependency._2, dependency._1))
+        builder.join(JoinStatement(table, dependency._2, dependency._1, "id"))
       }
     )
   }
 
   protected def getSelectBaseBuilder() : QueryBuilder = {
-    queryBuilder.select().from(tableName)
+    queryBuilder
+      .select()
+      .from(table)
   }
 
   protected def oneOrNone(resultList : Seq[T]) = {
@@ -153,12 +162,12 @@ trait DaoTrait {
     }
   }
 
-  def delete(whereClause: SqlClause) : Unit = {
+  def delete(whereClause: Predicate) : Unit = {
     implicit val conn: Connection = db.getConnection()
     try {
       queryBuilder
         .delete()
-        .from(tableName)
+        .from(table)
         .where(whereClause)
         .toPreparedStatement()
         .execute()
@@ -167,11 +176,11 @@ trait DaoTrait {
     }
   }
 
-  def update(mapping: Map[String, Any], whereClause: SqlClause) : Any = {
+  def update(mapping: Map[String, Any], whereClause: Predicate) : Any = {
     implicit val conn: Connection = db.getConnection()
     try {
       queryBuilder
-        .update(tableName)
+        .update(table)
         .set(mapping)
         .where(whereClause)
         .toPreparedStatement()

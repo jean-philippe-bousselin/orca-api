@@ -5,19 +5,21 @@ import java.sql.{Connection, PreparedStatement}
 import play.api.Logger
 
 case class QueryBuilder private (
-  queryType: String,
-  projection: Option[Seq[String]],
-  from: String,
-  joins: Option[Seq[JoinStatement]],
-  where: Option[SqlClause],
-  and: Option[Seq[SqlClause]],
-  orderBy: Option[Seq[String]],
-  limit: Option[Int],
-  values: Map[String, Any]
+                                  queryType: String,
+                                  projection: Option[Seq[String]],
+                                  from: Table,
+                                  joins: Option[Seq[JoinStatement]],
+                                  where: Option[Predicate],
+                                  and: Option[Seq[Predicate]],
+                                  orderBy: Option[Seq[String]],
+                                  limit: Option[Int],
+                                  values: Map[String, Any]
 ) {
 
   def select() : QueryBuilder = {
-    copy(queryType = QueryTypes.SELECT)
+    copy(
+      queryType = QueryTypes.SELECT
+    )
   }
 
   def insert() : QueryBuilder = {
@@ -28,16 +30,16 @@ case class QueryBuilder private (
     copy(queryType = QueryTypes.DELETE)
   }
 
-  def update(tableName: String) : QueryBuilder = {
-    copy(queryType = QueryTypes.UPDATE, from = tableName)
+  def update(table: Table) : QueryBuilder = {
+    copy(queryType = QueryTypes.UPDATE, from = table)
   }
 
-  def from(tableName: String) : QueryBuilder = {
-    copy(from = tableName)
+  def from(table: Table) : QueryBuilder = {
+    copy(from = table)
   }
 
-  def into(tableName: String) : QueryBuilder = {
-    copy(from = tableName)
+  def into(table: Table) : QueryBuilder = {
+    copy(from = table)
   }
 
   def join(statement: JoinStatement) : QueryBuilder = {
@@ -54,11 +56,11 @@ case class QueryBuilder private (
     }
   }
 
-  def where(clause: SqlClause) : QueryBuilder = {
+  def where(clause: Predicate) : QueryBuilder = {
     copy(where = Some(clause))
   }
 
-  def and(clause: SqlClause) : QueryBuilder = {
+  def and(clause: Predicate) : QueryBuilder = {
     and match {
       case Some(a) => copy(and = Some(a ++ Seq(clause)))
       case None => copy(and = Some(Seq(clause)))
@@ -154,8 +156,28 @@ case class QueryBuilder private (
 
   private def getProjectionString(): String = {
     projection match {
-      case None => "*"
-      case Some(p) => p.mkString(",")
+      case None => projectDefaultAsString()
+      case Some(p) => p.map(column => from.name + "." + column).mkString(",")
+    }
+  }
+
+  private def projectDefaultAsString() : String = {
+    val fromProjection: String = from.getProjectionAsString()
+    joins match {
+      case None => fromProjection
+      case Some(j) => {
+        j.foldLeft(fromProjection)(
+          (output, joinStatement) => {
+            output + ", " +
+              joinStatement
+                .getTables()
+                .map(_.getProjection())
+                .distinct
+                .flatten
+                .mkString(", ")
+          }
+        )
+      }
     }
   }
 
@@ -222,7 +244,7 @@ case class QueryBuilder private (
     values.keys.map(_ + " = ?").mkString(",")
   }
   private def getFromString() : String = {
-    "FROM " + from
+    "FROM " + from.name + " " + from.alias
   }
   private def buildSelectQueryString() : String = {
     buildSelectQuery().filter(_ != "").mkString(" ")
@@ -252,13 +274,14 @@ case class QueryBuilder private (
   private def buildUpdateQuery() : Seq[String] = {
     Seq(
       QueryTypes.UPDATE,
-      from,
+      from.name + " " + from.alias,
       "SET",
       getValuesWithColumnsString(),
       getWhereString(),
       getAndString()
     )
   }
+
   private def buildInsertQueryString() : String = {
     buildInsertQuery().filter(_ != "").mkString(" ")
   }
@@ -275,7 +298,7 @@ case class QueryBuilder private (
     }
     Seq(
       QueryTypes.INSERT + " INTO",
-      from,
+      from.name,
       "(" + getColumnsAsString() + ")",
       "VALUES (" + getValuesString() + ")"
     )
@@ -286,7 +309,7 @@ case class QueryBuilder private (
 object QueryBuilder {
   def apply() : QueryBuilder = {
     QueryBuilder(
-      QueryTypes.SELECT, None, "", None, None, None, None, None, Map.empty
+      QueryTypes.SELECT, None, Table.emptyTable, None, None, None, None, None, Map.empty
     )
   }
 }

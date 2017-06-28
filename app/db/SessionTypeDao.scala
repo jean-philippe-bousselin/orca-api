@@ -3,6 +3,7 @@ package db
 import java.sql.ResultSet
 import javax.inject.Inject
 
+import db.queryBuilder.Table
 import models.{Championship, ChampionshipConfiguration, SessionType}
 import play.api.db._
 
@@ -15,7 +16,11 @@ class SessionTypeDao @Inject()(
 
   type T = SessionType
 
-  override val tableName = "session_type"
+  override val table = Table(
+    "session_type",
+    "st",
+    Seq("id", "name", "points", "incidents_limit", "penalty_points", "championship_id")
+  )
 
   override def getColumnMapping(sessionType: SessionType) : Map[String, Any] = {
     Map(
@@ -28,11 +33,11 @@ class SessionTypeDao @Inject()(
 
   override def resultSetToModel(resultSet: ResultSet) : SessionType = {
     SessionType(
-      resultSet.getInt("id"),
-      resultSet.getString("name"),
-      resultSet.getString("points").split(",").map(_.toInt),
-      resultSet.getInt("incidents_limit"),
-      resultSet.getInt("penalty_points")
+      resultSet.getInt(table.alias + ".id"),
+      resultSet.getString(table.alias + ".name"),
+      resultSet.getString(table.alias + ".points").split(",").map(_.toInt),
+      resultSet.getInt(table.alias + ".incidents_limit"),
+      resultSet.getInt(table.alias + ".penalty_points")
     )
   }
 

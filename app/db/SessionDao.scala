@@ -1,9 +1,9 @@
 package db
 
-import java.sql.ResultSet
+import java.sql.{Connection, ResultSet}
 import javax.inject.Inject
 
-import db.queryBuilder.{SqlClause, SqlComparators}
+import db.queryBuilder.{JoinStatement, Predicate, SqlComparators, Table}
 import models.Session
 import play.api.Logger
 import play.api.db._
@@ -19,11 +19,17 @@ class SessionDao @Inject()(
 
   type T = Session
 
-  override val tableName = "sessions"
-  override val tableDependencies: Map[String, String] = Map(
-    "track_id" -> trackDao.tableName,
-    "session_type_id" -> sessionTypeDao.tableName
+  override val table = Table(
+    "sessions",
+    "s",
+    Seq("id", "name", "date", "time", "track_id", "session_type_id", "championship_id")
   )
+
+  override val tableDependencies: Map[String, Table] = Map(
+    "track_id" -> trackDao.table,
+    "session_type_id" -> sessionTypeDao.table
+  )
+
   override val orderByDefaultColumns: Seq[String] = Seq("date")
 
   override def getColumnMapping(session: Session): Map[String, Any] = {
@@ -37,11 +43,12 @@ class SessionDao @Inject()(
   }
 
   override def resultSetToModel(resultSet: ResultSet) : Session = {
+
     Session(
-      resultSet.getInt("id"),
-      resultSet.getString("name"),
-      resultSet.getString("date"),
-      resultSet.getString("time"),
+      resultSet.getInt(table.alias + ".id"),
+      resultSet.getString(table.alias + ".name"),
+      resultSet.getString(table.alias + ".date"),
+      resultSet.getString(table.alias + ".time"),
       trackDao.resultSetToModel(resultSet),
       sessionTypeDao.resultSetToModel(resultSet)
     )
@@ -56,7 +63,7 @@ class SessionDao @Inject()(
   }
 
   def getAll(championshipId: Int) : Future[Seq[Session]] = {
-    getWhere(SqlClause("championship_id", championshipId, SqlComparators.EQUALS, tableName))
+    getWhere(Predicate("championship_id", championshipId, SqlComparators.EQUALS, table))
   }
 
 }
