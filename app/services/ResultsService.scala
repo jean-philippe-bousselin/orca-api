@@ -10,6 +10,7 @@ import _root_.net.ruippeixotog.scalascraper.dsl.DSL.Parse._
 import _root_.net.ruippeixotog.scalascraper.model._
 import _root_.net.ruippeixotog.scalascraper.browser.{Browser, JsoupBrowser}
 import db.SessionDao
+import play.api.Logger
 import play.api.libs.Files
 import play.api.libs.json.Json
 import play.api.mvc.MultipartFormData
@@ -53,10 +54,10 @@ class ResultsService @Inject()(
         for {
           extractedLines     <- extractRawResults(file.ref.file)(browser)
           transformedResults <- transformAsResults(session.id, extractedLines)
-          // finalResults       <- calculatePointsAndPenalties(raceType, transformedResults)
+          finalResults       <- calculatePointsAndPenalties(session.sessionType, transformedResults)
           // insertedResults    <- resultDao.insertMany(finalResults)
         // } yield insertedResults
-        } yield transformedResults
+        } yield finalResults
       }
     )
   }
@@ -72,11 +73,15 @@ class ResultsService @Inject()(
         case pos if pos < sessionType.points.length => sessionType.points(pos - 1)
         case _ => 0
       }
-      val penaltyPoints = (result.incidents / sessionType.incidentsLimit) * sessionType.penaltyPoints
-      result.copy(
-        points = points,
-        penaltyPoints = penaltyPoints
-      )
+      if(sessionType.incidentsLimit != 0) {
+        val penaltyPoints = (result.incidents / sessionType.incidentsLimit) * sessionType.penaltyPoints
+        result.copy(
+          points = points,
+          penaltyPoints = penaltyPoints
+        )
+      } else {
+        result
+      }
     }
 
   }
