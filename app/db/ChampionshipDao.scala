@@ -21,7 +21,7 @@ class ChampionshipDao @Inject()(
   override val table = Table(
     "championships",
     "c",
-    Seq("id", "name", "description")
+    Seq("id", "name", "description", "thumbnailUrl")
   )
 
   val foreignKey = "championship_id"
@@ -29,7 +29,8 @@ class ChampionshipDao @Inject()(
   override def getColumnMapping(champ: Championship): Map[String, Any] = {
     Map(
       "name" -> champ.name,
-      "description" -> champ.description.getOrElse("")
+      "description" -> champ.description.getOrElse(""),
+      "thumbnailUrl" -> champ.thumbnailUrl.getOrElse("")
     )
   }
 
@@ -37,7 +38,8 @@ class ChampionshipDao @Inject()(
     Championship(
       resultSet.getInt("id"),
       resultSet.getString("name"),
-      Some(resultSet.getString("description"))
+      Some(resultSet.getString("description")),
+      Some(resultSet.getString("thumbnailUrl"))
     )
   }
 

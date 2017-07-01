@@ -7,7 +7,8 @@ import play.api.libs.json.{Json, OWrites}
 case class Championship(
   id: Int = 0,
   name: String,
-  description : Option[String]
+  description: Option[String],
+  thumbnailUrl: Option[String]
 ) {}
 
 object Championship {
@@ -18,7 +19,8 @@ object Championship {
     mapping(
       "id" -> ignored(0),
       "name" -> nonEmptyText,
-      "description" -> optional(text)
+      "description" -> optional(text),
+      "thumbnailUrl" -> optional(text)
     )(Championship.apply)(Championship.unapply)
   )
 
