@@ -13,11 +13,11 @@ import scala.concurrent.Future
 
 class ResultsController @Inject()(resultsService: ResultsService) extends Controller {
 
-//  def getForSession(sessionId: String) = Action.async { implicit request =>
-//    resultsService.getForSession(sessionId).map { results =>
-//      Ok(Json.toJson(results))
-//    }
-//  }
+  def getForSession(sessionId: Int) = Action.async { implicit request =>
+    resultsService.getForSession(sessionId).map { results =>
+      Ok(Json.toJson(results))
+    }
+  }
 
   def uploadResults(sessionId: Int) = Action.async(parse.multipartFormData) { request =>
     resultsService.uploadExtractAndLoadResults(sessionId, request.body.files)

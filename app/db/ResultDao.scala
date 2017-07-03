@@ -21,9 +21,9 @@ class ResultDao @Inject()(
   override val table = Table(
     "results",
     "r",
-    Seq("id", "position", "classPosition", "classCar", "carNumber", "fullName", "startPosition",
-      "interval", "lapsLed", "averageLap", "fastestLap", "fastestLapNumber",
-      "totalLaps", "incidents", "club", "points", "penaltyPoints", "finalPoints", "sessionId")
+    Seq("id", "position", "class_position", "class_car", "car_number", "full_name", "start_position",
+      "interval_time", "laps_led", "average_lap", "fastest_lap", "fastest_lap_number",
+      "total_laps", "incidents", "club", "points", "penalty_points", "final_points", "session_id")
   )
 
   override val tableDependencies: Map[String, Table] = Map(
@@ -65,7 +65,7 @@ class ResultDao @Inject()(
       resultSet.getString(table.alias + ".car_number"),
       resultSet.getString(table.alias + ".full_name"),
       resultSet.getInt(table.alias + ".start_position"),
-      resultSet.getString(table.alias + ".interval"),
+      resultSet.getString(table.alias + ".interval_time"),
       resultSet.getInt(table.alias + ".laps_led"),
       resultSet.getString(table.alias + ".average_lap"),
       resultSet.getString(table.alias + ".fastest_lap"),
@@ -86,6 +86,10 @@ class ResultDao @Inject()(
       insertMany(data.map(result => getColumnMapping(result)))
       data
     }
+  }
+
+  def getForSession(sessionId: Int) : Future[Seq[Result]] = {
+    getWhere(Predicate("session_id", sessionId, SqlComparators.EQUALS, table))
   }
 
 }

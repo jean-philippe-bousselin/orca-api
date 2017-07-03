@@ -26,10 +26,10 @@ class ResultsService @Inject()(
   championshipsDao: ChampionshipsService
 ){
 
-//  def getForSession(sessionId: String) : Future[Seq[Result]] = {
-//    resultDao.getForSession(sessionId)
-//  }
-//
+  def getForSession(sessionId: Int) : Future[Seq[Result]] = {
+    resultDao.getForSession(sessionId)
+  }
+
   def uploadExtractAndLoadResults(
     sessionId: Int,
     files: Seq[MultipartFormData.FilePart[Files.TemporaryFile]]

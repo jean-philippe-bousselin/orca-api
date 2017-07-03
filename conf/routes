@@ -18,6 +18,5 @@ POST       /championships/:id/configure     controllers.ChampionshipsController.
 
 # Sessions
 GET         /sessions/:id                   controllers.SessionsController.find(id: Int)
-# GET        /sessions/:sessionId/results       controllers.ResultsController.getForSession(sessionId: String)
-# POST       /sessions                          controllers.SessionsController.add
+GET        /sessions/:sessionId/results       controllers.ResultsController.getForSession(sessionId: Int)
 POST       /sessions/:sessionId/results      controllers.ResultsController.uploadResults(sessionId: Int)
