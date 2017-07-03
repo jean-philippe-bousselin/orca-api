@@ -20,6 +20,7 @@ case class Result(
   club: String,
   points: Int,
   penaltyPoints: Int,
+  finalPoints: Int,
   sessionId: Int
 ) {}
 

@@ -244,7 +244,12 @@ case class QueryBuilder private (
     values.keys.map(_ + " = ?").mkString(",")
   }
   private def getFromString() : String = {
-    "FROM " + from.name + " " + from.alias
+    if(queryType == QueryTypes.DELETE) {
+      from.alias + " FROM " + from.name + " AS " + from.alias
+    } else {
+      "FROM " + from.name + " " + from.alias
+    }
+
   }
   private def buildSelectQueryString() : String = {
     buildSelectQuery().filter(_ != "").mkString(" ")

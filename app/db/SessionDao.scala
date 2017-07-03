@@ -56,7 +56,6 @@ class SessionDao @Inject()(
 
   def add(championshipId: Int, session: Session) : Future[Session] = {
     Future {
-      implicit val conn = db.getConnection()
       val insertedId = insert(getColumnMapping(session) ++ championshipIdMapping(championshipId))
       session.copy(id = insertedId)
     }

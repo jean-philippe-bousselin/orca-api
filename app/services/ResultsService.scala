@@ -1,6 +1,7 @@
 package services
 
-import models.{Championship, Result, Session, SessionType}
+import models.{Result, Session, SessionType}
+import db.ResultDao
 import java.io.File
 import javax.inject.Inject
 
@@ -21,6 +22,7 @@ import scala.concurrent.Future
 
 class ResultsService @Inject()(
   sessionsDao: SessionDao,
+  resultDao: ResultDao,
   championshipsDao: ChampionshipsService
 ){
 
@@ -55,9 +57,8 @@ class ResultsService @Inject()(
           extractedLines     <- extractRawResults(file.ref.file)(browser)
           transformedResults <- transformAsResults(session.id, extractedLines)
           finalResults       <- calculatePointsAndPenalties(session.sessionType, transformedResults)
-          // insertedResults    <- resultDao.insertMany(finalResults)
-        // } yield insertedResults
-        } yield finalResults
+          insertedResults    <- resultDao.insertList(finalResults)
+        } yield insertedResults
       }
     )
   }
@@ -77,7 +78,8 @@ class ResultsService @Inject()(
         val penaltyPoints = (result.incidents / sessionType.incidentsLimit) * sessionType.penaltyPoints
         result.copy(
           points = points,
-          penaltyPoints = penaltyPoints
+          penaltyPoints = penaltyPoints,
+          finalPoints = points - penaltyPoints
         )
       } else {
         result
@@ -126,6 +128,7 @@ class ResultsService @Inject()(
       line(16).toString,
       0, // 0 points
       0, // 0 penalty points
+      0, // 0 final points
       0 // empty session id
     )
   }

@@ -45,7 +45,6 @@ class ChampionshipDao @Inject()(
 
   def add(championship: Championship) : Future[Championship] = {
     Future {
-      implicit val conn = db.getConnection()
       val insertedId = insert(getColumnMapping(championship))
       championship.copy(id = insertedId)
     }

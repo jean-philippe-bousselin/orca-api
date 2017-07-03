@@ -46,9 +46,12 @@ trait DaoTrait {
   /**
     *
     * @param data
-    * @param conn
     */
-  def insert(data: Map[String, Any])(implicit ct: ClassTag[T], conn: Connection) = {
+  def insert(data: Map[String, Any])(implicit ct: ClassTag[T]) = {
+
+    // @TODO refactor this shit
+    implicit val conn = db.getConnection()
+
     try {
 
       queryBuilder
@@ -64,6 +67,12 @@ trait DaoTrait {
       conn.close()
     }
 
+  }
+
+  def insertMany(data: Seq[Map[String, Any]])(implicit ct: ClassTag[T])  = {
+    data.map { item =>
+      insert(item)
+    }
   }
 
   def find(id: Int)(implicit ct: ClassTag[T]) : Future[Option[T]] = {

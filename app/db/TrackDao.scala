@@ -40,7 +40,6 @@ class TrackDao @Inject()(override val db: Database) extends DaoTrait {
 
   def add(track: Track) : Future[Track] = {
     Future {
-      implicit val conn = db.getConnection()
       val insertedId = insert(getColumnMapping(track))
       track.copy(id = insertedId)
     }
