@@ -17,7 +17,6 @@ trait DaoTrait {
 
   val db: Database
   val table: Table
-  val tableDependencies: Map[String, Table] = Map.empty
   val orderByDefaultColumns: Seq[String] = Seq.empty
   val queryBuilder = QueryBuilder()
 
@@ -146,14 +145,18 @@ trait DaoTrait {
   protected def addOrderBy(builder: QueryBuilder) : QueryBuilder = {
     orderByDefaultColumns.foldLeft(builder)(
       (builder, column) => {
-        builder.orderBy(column)
+        builder.orderBy(OrderByClause(column, "ASC", table))
       }
     )
   }
   protected def addJoins(builder: QueryBuilder) : QueryBuilder = {
-    tableDependencies.foldLeft(builder)(
+    table.dependencies.foldLeft(builder)(
       (builder, dependency) => {
-        builder.join(JoinStatement(table, dependency._2, dependency._1, "id"))
+        dependency._2.dependencies.foldLeft(builder.join(JoinStatement(table, dependency._2, dependency._1, "id")))(
+          (builder2, dep2) => {
+            builder2.join(JoinStatement(dependency._2, dep2._2, dep2._1, "id"))
+          }
+        )
       }
     )
   }

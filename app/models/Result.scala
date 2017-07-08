@@ -8,7 +8,7 @@ case class Result(
   classPosition: Int,
   classCar: String,
   carNumber: String,
-  fullName: String,
+  driver: Driver,
   startPosition: Int,
   interval: String,
   lapsLed: Int,

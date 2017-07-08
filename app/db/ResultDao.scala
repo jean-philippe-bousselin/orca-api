@@ -13,7 +13,8 @@ import scala.reflect.ClassTag
 
 class ResultDao @Inject()(
   override val db: Database,
-  sessionDao: SessionDao
+  sessionDao: SessionDao,
+  driverDao: DriverDao
 ) extends DaoTrait {
 
   type T = Result
@@ -21,16 +22,14 @@ class ResultDao @Inject()(
   override val table = Table(
     "results",
     "r",
-    Seq("id", "position", "class_position", "class_car", "car_number", "full_name", "start_position",
+    Seq("id", "position", "class_position", "class_car", "car_number", "driver_id", "start_position",
       "interval_time", "laps_led", "average_lap", "fastest_lap", "fastest_lap_number",
-      "total_laps", "incidents", "club", "points", "penalty_points", "final_points", "session_id")
+      "total_laps", "incidents", "club", "points", "penalty_points", "final_points", "session_id"),
+    Map(
+      "session_id" -> sessionDao.table,
+      "driver_id" -> driverDao.table
+    )
   )
-
-  override val tableDependencies: Map[String, Table] = Map(
-    "session_id" -> sessionDao.table
-  )
-
-  override val orderByDefaultColumns: Seq[String] = Seq("date")
 
   override def getColumnMapping(result: Result): Map[String, Any] = {
     Map(
@@ -39,7 +38,7 @@ class ResultDao @Inject()(
       "class_position" -> result.classPosition,
       "class_car" -> result.classCar,
       "car_number" -> result.carNumber,
-      "full_name" -> result.fullName,
+      "driver_id" -> result.driver.id,
       "start_position" -> result.startPosition,
       "interval_time" -> result.interval,
       "laps_led" -> result.lapsLed,
@@ -63,7 +62,7 @@ class ResultDao @Inject()(
       resultSet.getInt(table.alias + ".class_position"),
       resultSet.getString(table.alias + ".class_car"),
       resultSet.getString(table.alias + ".car_number"),
-      resultSet.getString(table.alias + ".full_name"),
+      driverDao.resultSetToModel(resultSet),
       resultSet.getInt(table.alias + ".start_position"),
       resultSet.getString(table.alias + ".interval_time"),
       resultSet.getInt(table.alias + ".laps_led"),

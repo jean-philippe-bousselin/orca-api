@@ -1,7 +1,7 @@
 package services
 
-import models.{Result, Session, SessionType}
-import db.ResultDao
+import models.{Driver, Result, Session, SessionType}
+import db.{DriverDao, ResultDao, SessionDao}
 import java.io.File
 import javax.inject.Inject
 
@@ -10,7 +10,6 @@ import _root_.net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 import _root_.net.ruippeixotog.scalascraper.dsl.DSL.Parse._
 import _root_.net.ruippeixotog.scalascraper.model._
 import _root_.net.ruippeixotog.scalascraper.browser.{Browser, JsoupBrowser}
-import db.SessionDao
 import play.api.Logger
 import play.api.libs.Files
 import play.api.libs.json.Json
@@ -23,6 +22,7 @@ import scala.concurrent.Future
 class ResultsService @Inject()(
   sessionsDao: SessionDao,
   resultDao: ResultDao,
+  driverDao: DriverDao,
   championshipsDao: ChampionshipsService
 ){
 
@@ -101,22 +101,39 @@ class ResultsService @Inject()(
       .map(_ >> allText)
   }
 
-  private def transformAsResults(sessionId: Int, rawResults: Seq[List[String]]) : Future[Seq[Result]] = Future {
-    rawResults.map { resultLine =>
-      lineAsResult(resultLine).copy(
-        sessionId = sessionId
+  private def transformAsResults(sessionId: Int, rawResults: Seq[List[String]]) : Future[Seq[Result]] = {
+    def getDriver(driverName: String) : Future[Driver] = {
+      driverDao.createIfNotExists(driverName)
+    }
+    def createResultWithDriver(drivers: Seq[Driver]) : Future[Seq[Result]] = {
+      Future.sequence(
+        rawResults.map { resultLine =>
+          getDriver(resultLine(5).toString).map { driver =>
+            lineAsResult(resultLine).copy(
+              sessionId = sessionId,
+              driver = driver
+            )
+          }
+        }
       )
     }
+
+    for {
+      championshipId  <- sessionsDao.getChampionshipId(sessionId)
+      drivers         <- driverDao.getChampionshipDrivers(championshipId)
+      results         <- createResultWithDriver(drivers)
+    } yield results
+
   }
 
   private def lineAsResult(line: Seq[Any]) : Result = {
     Result(
       0, // empty id
-      line.head.toString.toInt,
-      line(1).toString.toInt,
-      line(3).toString,
-      line(4).toString,
-      line(5).toString,
+      line.head.toString.toInt, // position
+      line(1).toString.toInt, // class position
+      line(3).toString, // classCar
+      line(4).toString, // carNumber
+      Driver(0, "", None), // driver
       line(6).toString.toInt,
       line(9).toString,
       line(10).toString.toInt,

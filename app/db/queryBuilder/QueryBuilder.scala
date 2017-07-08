@@ -1,24 +1,29 @@
 package db.queryBuilder
 
-import java.sql.{Connection, PreparedStatement}
+import java.sql.{Connection, PreparedStatement, ResultSet}
 
 import play.api.Logger
+import play.api.db.Database
 
 case class QueryBuilder private (
-                                  queryType: String,
-                                  projection: Option[Seq[String]],
-                                  from: Table,
-                                  joins: Option[Seq[JoinStatement]],
-                                  where: Option[Predicate],
-                                  and: Option[Seq[Predicate]],
-                                  orderBy: Option[Seq[String]],
-                                  limit: Option[Int],
-                                  values: Map[String, Any]
+  queryType: String,
+  projection: Option[Seq[String]],
+  from: Table,
+  joins: Option[Seq[JoinStatement]],
+  where: Option[Predicate],
+  and: Option[Seq[Predicate]],
+  orderBy: Option[Seq[OrderByClause]],
+  limit: Option[Int],
+  values: Map[String, Any]
 ) {
 
-  def select() : QueryBuilder = {
+  def select(columns: Seq[String] = Seq.empty) : QueryBuilder = {
     copy(
-      queryType = QueryTypes.SELECT
+      queryType = QueryTypes.SELECT,
+      projection = columns match {
+        case p if p.nonEmpty => Some(p)
+        case _ => None
+      }
     )
   }
 
@@ -49,6 +54,7 @@ case class QueryBuilder private (
     }
   }
 
+  // @deprecated
   def project(columns: Seq[String]) : QueryBuilder = {
     queryType match {
       case QueryTypes.SELECT => copy(projection = Some(columns))
@@ -67,10 +73,10 @@ case class QueryBuilder private (
     }
   }
 
-  def orderBy(column: String) : QueryBuilder = {
+  def orderBy(clause: OrderByClause) : QueryBuilder = {
     orderBy match {
-      case Some(o) => copy(orderBy = Some(o ++ Seq(column)))
-      case None => copy(orderBy = Some(Seq(column)))
+      case Some(o) => copy(orderBy = Some(o ++ Seq(clause)))
+      case None => copy(orderBy = Some(Seq(clause)))
     }
   }
 
@@ -157,7 +163,7 @@ case class QueryBuilder private (
   private def getProjectionString(): String = {
     projection match {
       case None => projectDefaultAsString()
-      case Some(p) => p.map(column => from.name + "." + column).mkString(",")
+      case Some(p) => p.map(column => from.alias + "." + column).mkString(",")
     }
   }
 
@@ -221,7 +227,7 @@ case class QueryBuilder private (
 
   private def getOrderByString() : String = {
     orderBy match {
-      case Some(o) => "ORDER BY " + o.mkString(",")
+      case Some(o) => "ORDER BY " + o.map(_.getSqlString()).mkString(",")
       case None => ""
     }
   }

@@ -22,12 +22,11 @@ class SessionDao @Inject()(
   override val table = Table(
     "sessions",
     "s",
-    Seq("id", "name", "date", "time", "track_id", "session_type_id", "championship_id")
-  )
-
-  override val tableDependencies: Map[String, Table] = Map(
-    "track_id" -> trackDao.table,
-    "session_type_id" -> sessionTypeDao.table
+    Seq("id", "name", "date", "time", "track_id", "session_type_id", "championship_id"),
+    Map(
+      "track_id" -> trackDao.table,
+      "session_type_id" -> sessionTypeDao.table
+    )
   )
 
   override val orderByDefaultColumns: Seq[String] = Seq("date")
@@ -63,6 +62,27 @@ class SessionDao @Inject()(
 
   def getAll(championshipId: Int) : Future[Seq[Session]] = {
     getWhere(Predicate("championship_id", championshipId, SqlComparators.EQUALS, table))
+  }
+
+  def getChampionshipId(sessionId: Int) : Future[Int] = {
+    Future {
+      implicit val conn: Connection = db.getConnection()
+      try {
+        val rs =
+          queryBuilder
+            .select(Seq("championship_id"))
+            .from(table)
+            .where(Predicate("id", sessionId, SqlComparators.EQUALS, table))
+            .toPreparedStatement()
+            .executeQuery()
+
+        rs.next()
+        rs.getInt("championship_id")
+
+      } finally {
+        conn.close()
+      }
+    }
   }
 
 }

@@ -3,7 +3,8 @@ package db.queryBuilder
 case class Table private(
   name: String,
   alias: String,
-  columns: Seq[String]
+  columns: Seq[String],
+  dependencies: Map[String, Table] = Map.empty
 ) {
 
 
@@ -17,5 +18,5 @@ case class Table private(
 }
 
 object Table {
-  val emptyTable = Table("", "", Seq.empty)
+  val emptyTable = Table("", "", Seq.empty, Map.empty)
 }
