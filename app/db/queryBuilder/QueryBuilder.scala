@@ -156,6 +156,7 @@ case class QueryBuilder private (
     column.getClass.getTypeName match {
       case "java.lang.String" => preparedStatement.setString(index, column.toString)
       case "java.lang.Integer" => preparedStatement.setInt(index, column.asInstanceOf[Int])
+      case "java.lang.Double" => preparedStatement.setDouble(index, column.asInstanceOf[Double])
       case other => throw new RuntimeException(s"Illegal type $other")
     }
   }

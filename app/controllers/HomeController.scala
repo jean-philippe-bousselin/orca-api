@@ -1,17 +1,10 @@
 package controllers
 
-
-import play.api.Logger
-import play.api.libs.json.Json
 import play.api.mvc.{Action, Controller}
 
-/**
-  * A very small controller that renders a home page.
-  */
 class HomeController extends Controller {
 
   def options(path: String) = Action {
-    Logger.debug("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
     Ok("").withHeaders(
       "Access-Control-Allow-Origin" -> "*",
       "Access-Control-Allow-Methods" -> "GET, POST, PUT, DELETE, OPTIONS",
@@ -20,9 +13,5 @@ class HomeController extends Controller {
       "Access-Control-Max-Age" -> (60 * 60 * 24).toString
     )
   }
-
-//  def index = Action { implicit request =>
-//    Ok(views.html.index())
-//  }
 
 }

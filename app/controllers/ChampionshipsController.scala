@@ -81,14 +81,10 @@ class ChampionshipsController @Inject()(
     }
   }
 
-
-//
-//  def standings(id : String) = Action.async { implicit request =>
-//    championshipService.buildStandings(id).map { standings =>
-//      Ok(Json.toJson(standings))
-//    }
-//  }
-//
-
+  def standings(id: Int) = Action.async { implicit request =>
+    championshipService.getStandings(id).map { standings =>
+      Ok(Json.toJson(standings))
+    }
+  }
 
 }

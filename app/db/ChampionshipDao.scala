@@ -4,7 +4,7 @@ import java.sql.{Connection, ResultSet}
 import javax.inject.Inject
 
 import db.queryBuilder.{Predicate, SqlComparators, Table}
-import models.{Championship, ChampionshipConfiguration, SessionType}
+import models.{Championship, ChampionshipConfiguration, SessionType, Standings}
 import play.api.Logger
 import play.api.db._
 

@@ -8,7 +8,8 @@ POST       /tracks                 controllers.TracksController.add
 # Championships
 GET        /championships                   controllers.ChampionshipsController.index
 GET        /championships/:id               controllers.ChampionshipsController.findById(id: Int)
-# GET        /championships/:id/standings     controllers.ChampionshipsController.standings(id: String)
+GET        /championships/:id/standings     controllers.ChampionshipsController.standings(id: Int)
+GET        /championships/:id/standings     controllers.ChampionshipsController.standings(id: Int)
 GET        /championships/:id/sessions      controllers.SessionsController.getAll(id: Int)
 GET        /championships/:id/session-types controllers.ChampionshipsController.getSessionTypes(id: Int)
 GET        /championships/:id/configuration controllers.ChampionshipsController.getConfiguration(id: Int)
@@ -17,6 +18,6 @@ POST       /championships                   controllers.ChampionshipsController.
 POST       /championships/:id/configure     controllers.ChampionshipsController.configure(id: Int)
 
 # Sessions
-GET         /sessions/:id                   controllers.SessionsController.find(id: Int)
-GET        /sessions/:sessionId/results       controllers.ResultsController.getForSession(sessionId: Int)
-POST       /sessions/:sessionId/results      controllers.ResultsController.uploadResults(sessionId: Int)
+GET        /sessions/:id                   controllers.SessionsController.find(id: Int)
+GET        /sessions/:sessionId/results    controllers.ResultsController.getForSession(sessionId: Int)
+POST       /sessions/:sessionId/results    controllers.ResultsController.uploadResults(sessionId: Int)

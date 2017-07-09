@@ -2,15 +2,19 @@ package services
 
 import javax.inject.Inject
 
-import db.ChampionshipDao
-import models.{Championship, ChampionshipConfiguration, Result, Session}
+import db.{ChampionshipDao, ResultDao, SessionDao, StandingsDao}
+import models._
+import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class ChampionshipsService @Inject()(
-  championshipDao: ChampionshipDao
+  championshipDao: ChampionshipDao,
+  standingsDao: StandingsDao,
+  sessionDao: SessionDao,
+  resultDao: ResultDao
 ) {
 
   def add(championship: Championship) : Future[Championship] = {
@@ -33,28 +37,29 @@ class ChampionshipsService @Inject()(
     championshipDao.getConfiguration(id)
   }
 
-//  def getSessions(id: Int) : Future[Seq[Session]] = {
-//    sessionMongo.getForChampionship(id)
-//  }
-//
-//
-//  def getResults(id: String) : Future[Seq[Result]] = {
-//
-//    getSessions(id).flatMap { sessions =>
-//      val sessionsIds: Seq[String] = sessions.map(_.id.get)
-//      resultMongo.getForSessions(sessionsIds)
-//    }
-//
-//  }
-//
-//  def buildStandings(id: String) : Future[JsValue] = {
-//
-//    for {
-//
-//      results <- getResults(id)
-//
-//    } yield Json.toJson(results)
-//
-//  }
+  def getStandings(id: Int) : Future[Seq[Standings]] = {
+    standingsDao.getForChampionship(id)
+  }
+
+  def buildStandings(id: Int) : Future[Seq[Standings]] = {
+    sessionDao.getAll(id).flatMap { sessionList =>
+      Future.sequence(
+        sessionList.map { session =>
+          resultDao.getForSession(session.id)
+        }
+      )
+    }.map { resultsList =>
+      resultsList.flatten.foldLeft(Seq[Standings]())(
+        (standings, result) => {
+          standings.find(s => s.driver.id == result.driver.id) match {
+            case Some(s) => standings.updated(standings.indexOf(s),s.updateWithResult(result))
+            case None => standings ++ Seq(Standings.generateFromResult(result))
+          }
+        }
+      )
+    }.flatMap { standingsList =>
+      standingsDao.insertList(id, standingsList)
+    }
+  }
 
 }

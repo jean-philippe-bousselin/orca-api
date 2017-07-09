@@ -27,18 +27,4 @@ class SessionsController @Inject()(sessionService: SessionsService) extends Cont
     }
   }
 
-//
-//  def add = Action.async(parse.json) { implicit request =>
-//    Session.form.bindFromRequest.fold(
-//      formWithErrors => {
-//        Future.successful(BadRequest(Json.toJson(formWithErrors.toString)))
-//      },
-//      session => {
-//        sessionService
-//          .add(session)
-//          .map { session => Ok(Json.toJson(session))}
-//          .recover{ case e: Exception => BadRequest(e.getMessage) }
-//      }
-//    )
-//  }
 }

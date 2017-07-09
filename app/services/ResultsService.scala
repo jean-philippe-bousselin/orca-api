@@ -23,7 +23,8 @@ class ResultsService @Inject()(
   sessionsDao: SessionDao,
   resultDao: ResultDao,
   driverDao: DriverDao,
-  championshipsDao: ChampionshipsService
+  championshipsDao: ChampionshipsService,
+  championshipsService: ChampionshipsService
 ){
 
   def getForSession(sessionId: Int) : Future[Seq[Result]] = {
@@ -54,10 +55,12 @@ class ResultsService @Inject()(
     Future.sequence(
       files.map { file =>
         for {
+          championshipId     <- sessionsDao.getChampionshipId(session.id)
           extractedLines     <- extractRawResults(file.ref.file)(browser)
           transformedResults <- transformAsResults(session.id, extractedLines)
           finalResults       <- calculatePointsAndPenalties(session.sessionType, transformedResults)
           insertedResults    <- resultDao.insertList(finalResults)
+          standings          <- championshipsService.buildStandings(championshipId)
         } yield insertedResults
       }
     )
