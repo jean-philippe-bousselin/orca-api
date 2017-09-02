@@ -67,9 +67,8 @@ class ChampionshipsController @Inject()(
         Future.successful(BadRequest(Json.toJson(formWithErrors.errors.map(_.toString))))
       },
       configuration => {
-        championshipService.configure(id, configuration).map { isSuccess =>
-          // @TODO handle failure
-          NoContent
+        championshipService.configure(id, configuration).map { updatedConfig =>
+          Ok(Json.toJson(updatedConfig))
         }
       }
     )

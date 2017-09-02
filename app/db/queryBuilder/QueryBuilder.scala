@@ -96,13 +96,19 @@ case class QueryBuilder private (
     val query = toSqlString()
     val prepStmt: PreparedStatement = conn.prepareStatement(query)
 
+    Logger.error("############################################")
+
+    Logger.error(values.toString)
+    Logger.error(getValuesWithColumnsString)
+
     getQueryParams().foldLeft(1)(
       (index, statement) => {
+        Logger.error(statement.toString())
         prepareParameter(statement._2, index, prepStmt)
         index + 1
       }
     )
-
+    Logger.error("############################################")
     prepStmt
   }
 
@@ -248,7 +254,10 @@ case class QueryBuilder private (
     values.map(_ => "?").mkString(",")
   }
   private def getValuesWithColumnsString() : String = {
-    values.keys.map(_ + " = ?").mkString(",")
+    // NOTICE: used to be like this:
+    // values.keys.map(_ + " = ?").mkString(",")
+    // however the order was wrong when escaping values, ergo we needed the following:
+    values.toSeq.map(_._1 + " = ?").mkString(",")
   }
   private def getFromString() : String = {
     if(queryType == QueryTypes.DELETE) {

@@ -50,22 +50,24 @@ class ChampionshipDao @Inject()(
     }
   }
 
-  def saveConfiguration(id: Int, configuration: ChampionshipConfiguration) : Future[Boolean] = {
-    Future {
+  def saveConfiguration(id: Int, configuration: ChampionshipConfiguration) : Future[ChampionshipConfiguration] = {
+    Future.sequence {
       configuration.sessionTypes.map { sessionType =>
         // @TODO handle deleted types here
-        sessionTypeDao.find(sessionType.id).map {
+        sessionTypeDao.find(sessionType.id).flatMap {
           case Some(st) => {
             val whereClause = Predicate("id", sessionType.id, SqlComparators.EQUALS, sessionTypeDao.table)
             sessionTypeDao.update(
               sessionTypeDao.getColumnMapping(sessionType),
               whereClause
             )
+            Future.successful(sessionType)
           }
           case None => sessionTypeDao.add(id, sessionType)
         }
       }
-      true
+    }.flatMap { updateSessionTypes =>
+      Future.successful(configuration.copy(sessionTypes = updateSessionTypes))
     }
   }
 

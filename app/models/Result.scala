@@ -19,6 +19,7 @@ case class Result(
   incidents: Int,
   club: String,
   points: Int,
+  bonusPoints: Int,
   penaltyPoints: Int,
   finalPoints: Int,
   sessionId: Int

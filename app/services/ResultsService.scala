@@ -81,6 +81,10 @@ class ResultsService @Inject()(
         val penaltyPoints = (result.incidents / sessionType.incidentsLimit) * sessionType.penaltyPoints
         result.copy(
           points = points,
+          bonusPoints = result.incidents match {
+            case 0 => sessionType.bonusPoints
+            case _ => 0
+          },
           penaltyPoints = penaltyPoints,
           finalPoints = points - penaltyPoints
         )
@@ -147,6 +151,7 @@ class ResultsService @Inject()(
       line(15).toString.toInt,
       line(16).toString,
       0, // 0 points
+      0, // 0 bonus points
       0, // 0 penalty points
       0, // 0 final points
       0 // empty session id

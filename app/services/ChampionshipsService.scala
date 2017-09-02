@@ -29,7 +29,7 @@ class ChampionshipsService @Inject()(
     championshipDao.find(id)
   }
 
-  def configure(id: Int, configuration: ChampionshipConfiguration) : Future[Boolean] = {
+  def configure(id: Int, configuration: ChampionshipConfiguration) : Future[ChampionshipConfiguration] = {
     championshipDao.saveConfiguration(id, configuration)
   }
 

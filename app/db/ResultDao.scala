@@ -24,7 +24,7 @@ class ResultDao @Inject()(
     "r",
     Seq("id", "position", "class_position", "class_car", "car_number", "driver_id", "start_position",
       "interval_time", "laps_led", "average_lap", "fastest_lap", "fastest_lap_number",
-      "total_laps", "incidents", "club", "points", "penalty_points", "final_points", "session_id"),
+      "total_laps", "incidents", "club", "points", "bonus_points", "penalty_points", "final_points", "session_id"),
     Map(
       "session_id" -> sessionDao.table,
       "driver_id" -> driverDao.table
@@ -49,6 +49,7 @@ class ResultDao @Inject()(
       "incidents" -> result.incidents,
       "club" -> result.club,
       "points" -> result.points,
+      "bonus_points" -> result.bonusPoints,
       "penalty_points" -> result.penaltyPoints,
       "final_points" -> result.finalPoints,
       "session_id" -> result.sessionId
@@ -73,6 +74,7 @@ class ResultDao @Inject()(
       resultSet.getInt(table.alias + ".incidents"),
       resultSet.getString(table.alias + ".club"),
       resultSet.getInt(table.alias + ".points"),
+      resultSet.getInt(table.alias + ".bonus_points"),
       resultSet.getInt(table.alias + ".penalty_points"),
       resultSet.getInt(table.alias + ".final_points"),
       resultSet.getInt(table.alias + ".session_id")

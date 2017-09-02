@@ -19,7 +19,7 @@ class SessionTypeDao @Inject()(
   override val table = Table(
     "session_type",
     "st",
-    Seq("id", "name", "points", "incidents_limit", "penalty_points", "championship_id")
+    Seq("id", "name", "points", "incidents_limit", "penalty_points", "bonus_points", "championship_id")
   )
 
   override def getColumnMapping(sessionType: SessionType) : Map[String, Any] = {
@@ -27,7 +27,8 @@ class SessionTypeDao @Inject()(
       "name" -> sessionType.name,
       "points" -> sessionType.points.mkString(","),
       "incidents_limit" -> sessionType.incidentsLimit,
-      "penalty_points" -> sessionType.penaltyPoints
+      "penalty_points" -> sessionType.penaltyPoints,
+      "bonus_points" -> sessionType.bonusPoints
     )
   }
 
@@ -37,7 +38,8 @@ class SessionTypeDao @Inject()(
       resultSet.getString(table.alias + ".name"),
       resultSet.getString(table.alias + ".points").split(",").map(_.toInt),
       resultSet.getInt(table.alias + ".incidents_limit"),
-      resultSet.getInt(table.alias + ".penalty_points")
+      resultSet.getInt(table.alias + ".penalty_points"),
+      resultSet.getInt(table.alias + ".bonus_points")
     )
   }
 

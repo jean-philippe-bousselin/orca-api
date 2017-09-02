@@ -9,7 +9,8 @@ case class SessionType(
   name: String,
   points: Seq[Int],
   incidentsLimit: Int,
-  penaltyPoints: Int
+  penaltyPoints: Int,
+  bonusPoints: Int
 ) {}
 
 object SessionType {
@@ -22,7 +23,8 @@ object SessionType {
       "name" -> nonEmptyText,
       "points" -> seq(number),
       "incidentsLimit" -> number,
-      "penaltyPoints" -> number
+      "penaltyPoints" -> number,
+      "bonusPoints" -> number
     )(SessionType.apply)(SessionType.unapply)
   }
 
@@ -31,7 +33,8 @@ object SessionType {
     "name" -> nonEmptyText,
     "points" -> seq(number),
     "incidentsLimit" -> number,
-    "penaltyPoints" -> number
+    "penaltyPoints" -> number,
+    "bonusPoints" -> number
   )(SessionType.apply)(SessionType.unapply)
 
   val form: Form[SessionType] = Form(
