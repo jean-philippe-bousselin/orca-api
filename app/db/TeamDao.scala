@@ -7,12 +7,17 @@ import db.queryBuilder.Table
 import models.Team
 import play.api.db._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
 class TeamDao @Inject()(
   override val db: Database
 ) extends DaoTrait {
 
   type T = Team
 
+  override val orderByDefaultColumns = Seq("name")
+  
   override val table = Table(
     "teams",
     "te",
@@ -30,6 +35,13 @@ class TeamDao @Inject()(
       resultSet.getInt(table.alias + ".id"),
       resultSet.getString(table.alias + ".name")
     )
+  }
+
+  def add(team: Team) : Future[Team] = {
+    Future {
+      val insertedId = insert(getColumnMapping(team))
+      team.copy(id = insertedId)
+    }
   }
 
 }

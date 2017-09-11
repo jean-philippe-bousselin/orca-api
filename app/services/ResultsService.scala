@@ -140,7 +140,7 @@ class ResultsService @Inject()(
       line(1).toString.toInt, // class position
       line(3).toString, // classCar
       line(4).toString, // carNumber
-      Driver(0, "", None), // driver
+      Driver(0, "", Driver.DEFAULT_CATEGORY, None), // driver
       line(6).toString.toInt,
       line(9).toString,
       line(10).toString.toInt,

@@ -13,7 +13,8 @@ create table rcm.drivers
   id int auto_increment
     primary key,
   name varchar(250) not null,
-  team_id int null
+  team_id int null,
+  category varchar(5) null
 )
 ;
 

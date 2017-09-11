@@ -95,20 +95,12 @@ case class QueryBuilder private (
   def toPreparedStatement()(implicit conn: Connection) : PreparedStatement = {
     val query = toSqlString()
     val prepStmt: PreparedStatement = conn.prepareStatement(query)
-
-    Logger.error("############################################")
-
-    Logger.error(values.toString)
-    Logger.error(getValuesWithColumnsString)
-
     getQueryParams().foldLeft(1)(
       (index, statement) => {
-        Logger.error(statement.toString())
         prepareParameter(statement._2, index, prepStmt)
         index + 1
       }
     )
-    Logger.error("############################################")
     prepStmt
   }
 

@@ -17,13 +17,16 @@ class DriverDao @Inject()(override val db: Database, teamDao: TeamDao) extends D
   override val table = Table(
     "drivers",
     "d",
-    Seq("id", "name", "team_id"),
+    Seq("id", "name", "category","team_id"),
     Map("team_id" -> teamDao.table)
   )
+
+  override val orderByDefaultColumns = Seq("name")
 
   override def getColumnMapping(driver: Driver): Map[String, Any] = {
     Map(
       "name" -> driver.name,
+      "category" -> driver.category,
       "team_id" -> driver.team.getOrElse(1) // privateers team
     )
   }
@@ -32,6 +35,7 @@ class DriverDao @Inject()(override val db: Database, teamDao: TeamDao) extends D
     Driver(
       resultSet.getInt(table.alias + ".id"),
       resultSet.getString(table.alias + ".name"),
+      resultSet.getString(table.alias + ".category"),
       Some(teamDao.resultSetToModel(resultSet))
     )
   }
@@ -45,8 +49,8 @@ class DriverDao @Inject()(override val db: Database, teamDao: TeamDao) extends D
     find(Predicate("name", name, SqlComparators.EQUALS, table)).map {
       case Some(d) => d
       case None =>
-        val id = insert(getColumnMapping(Driver(0, name, None)))
-        Driver(id, name, None)
+        val id = insert(getColumnMapping(Driver(0, name, Driver.DEFAULT_CATEGORY, None)))
+        Driver(id, name, Driver.DEFAULT_CATEGORY, None)
     }
   }
 

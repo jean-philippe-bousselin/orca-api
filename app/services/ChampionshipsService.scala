@@ -2,7 +2,7 @@ package services
 
 import javax.inject.Inject
 
-import db.{ChampionshipDao, ResultDao, SessionDao, StandingsDao}
+import db._
 import models._
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
@@ -14,7 +14,9 @@ class ChampionshipsService @Inject()(
   championshipDao: ChampionshipDao,
   standingsDao: StandingsDao,
   sessionDao: SessionDao,
-  resultDao: ResultDao
+  resultDao: ResultDao,
+  driverDao: DriverDao,
+  teamDao: TeamDao
 ) {
 
   def add(championship: Championship) : Future[Championship] = {
@@ -60,6 +62,14 @@ class ChampionshipsService @Inject()(
     }.flatMap { standingsList =>
       standingsDao.insertList(id, standingsList)
     }
+  }
+
+  def drivers() : Future[Seq[Driver]] = {
+    driverDao.getAll()
+  }
+
+  def teams() : Future[Seq[Team]] = {
+    teamDao.getAll()
   }
 
 }

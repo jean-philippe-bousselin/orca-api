@@ -2,18 +2,19 @@ package controllers
 
 import javax.inject.Inject
 
-import models.{Championship, ChampionshipConfiguration, Session, SessionType}
+import models._
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{Action, Controller}
-import services.{ChampionshipsService, SessionsService}
+import services.{ChampionshipsService, SessionsService, TeamService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class ChampionshipsController @Inject()(
   championshipService: ChampionshipsService,
-  sessionService: SessionsService
+  sessionService: SessionsService,
+  teamService: TeamService
 ) extends Controller {
 
   def index = Action.async { implicit request =>
@@ -86,4 +87,28 @@ class ChampionshipsController @Inject()(
     }
   }
 
+  def drivers(id: Int) = Action.async { implicit request =>
+    championshipService.drivers().map { drivers =>
+      Ok(Json.toJson(drivers))
+    }
+  }
+
+  def teams(id: Int) = Action.async { implicit request =>
+    championshipService.teams().map { teams =>
+      Ok(Json.toJson(teams))
+    }
+  }
+
+  def addTeam(id: Int) = Action.async { implicit request =>
+    Team.form.bindFromRequest.fold(
+      formWithErrors => {
+        Future.successful(BadRequest(Json.toJson(formWithErrors.toString)))
+      },
+      team => {
+        teamService.add(team).map { team =>
+          Ok(Json.toJson(team))
+        }
+      }
+    )
+  }
 }
