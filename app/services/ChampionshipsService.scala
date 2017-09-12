@@ -72,4 +72,8 @@ class ChampionshipsService @Inject()(
     teamDao.getAll()
   }
 
+  def updateDriver(driver: Driver) : Future[Driver] = {
+    driverDao.updateDriver(driver)
+  }
+
 }

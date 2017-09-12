@@ -4,7 +4,8 @@ import java.sql.ResultSet
 import javax.inject.Inject
 
 import db.queryBuilder.{Predicate, SqlComparators, Table}
-import models.{Driver, Session}
+import models.{Driver, Team}
+import play.api.Logger
 import play.api.db._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -24,10 +25,11 @@ class DriverDao @Inject()(override val db: Database, teamDao: TeamDao) extends D
   override val orderByDefaultColumns = Seq("name")
 
   override def getColumnMapping(driver: Driver): Map[String, Any] = {
+    Logger.error(driver.toString)
     Map(
       "name" -> driver.name,
       "category" -> driver.category,
-      "team_id" -> driver.team.getOrElse(1) // privateers team
+      "team_id" -> driver.team.map(_.id).getOrElse(Team.TEAM_PRIVATEERS_ID) // defaults privateers team
     )
   }
 
@@ -52,6 +54,12 @@ class DriverDao @Inject()(override val db: Database, teamDao: TeamDao) extends D
         val id = insert(getColumnMapping(Driver(0, name, Driver.DEFAULT_CATEGORY, None)))
         Driver(id, name, Driver.DEFAULT_CATEGORY, None)
     }
+  }
+
+  def updateDriver(driver: Driver) : Future[Driver] = Future {
+    val whereClause = Predicate("id", driver.id, SqlComparators.EQUALS, table)
+    update(getColumnMapping(driver), whereClause)
+    driver
   }
 
 }

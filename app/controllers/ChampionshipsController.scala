@@ -111,4 +111,18 @@ class ChampionshipsController @Inject()(
       }
     )
   }
+
+  def updateDriver(id: Int) = Action.async { implicit request =>
+    Driver.formWithRequiredId.bindFromRequest.fold(
+      formWithErrors => {
+        Future.successful(BadRequest(Json.toJson(formWithErrors.toString)))
+      },
+      driver => {
+        championshipService.updateDriver(driver).map { driver =>
+          Ok(Json.toJson(driver))
+        }
+      }
+    )
+  }
+
 }

@@ -3,6 +3,7 @@ package models
 import play.api.data._
 import play.api.data.Forms._
 import play.api.libs.json.{Json, OWrites}
+import play.api.libs.functional.syntax._
 
 case class Session(
   id: Int,

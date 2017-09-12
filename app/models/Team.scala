@@ -13,6 +13,8 @@ case class Team(
 object Team {
   implicit val writes: OWrites[Team] = Json.writes[Team]
 
+  val TEAM_PRIVATEERS_ID = 1
+
   def getMappingWithMandatoryId() : Mapping[Team] = {
     mapping(
       "id" -> number,

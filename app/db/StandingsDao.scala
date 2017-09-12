@@ -17,6 +17,8 @@ class StandingsDao @Inject()(
 
   type T = Standings
 
+  override val orderByDefaultColumns = Seq("position")
+
   override val table = Table(
     "standings",
     "sta",
