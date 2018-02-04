@@ -28,4 +28,3 @@ case class Result(
 object Result {
   implicit val championshipWrites: OWrites[Result] = Json.writes[Result]
 }
-

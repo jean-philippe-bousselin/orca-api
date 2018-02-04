@@ -17,6 +17,7 @@ import play.api.mvc.MultipartFormData
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.io.Source
 
 
 class ResultsService @Inject()(
@@ -56,7 +57,7 @@ class ResultsService @Inject()(
       files.map { file =>
         for {
           championshipId     <- sessionsDao.getChampionshipId(session.id)
-          extractedLines     <- extractRawResults(file.ref.file)(browser)
+          extractedLines     <- extractRawCSVResults(file.ref.file)//(browser)
           transformedResults <- transformAsResults(session.id, extractedLines)
           finalResults       <- calculatePointsAndPenalties(session.sessionType, transformedResults)
           insertedResults    <- resultDao.insertList(finalResults)
@@ -96,10 +97,9 @@ class ResultsService @Inject()(
   }
 
 
-  private def extractRawResults(
+  private def extractRawHTMLResults(
     file: File
   )(implicit browser: Browser) : Future[Seq[List[String]]] = Future {
-
     val doc = browser.parseFile(file)
     val items: Seq[Element] = doc >> elementList(".single-results-container.race tr")
     items
@@ -108,14 +108,29 @@ class ResultsService @Inject()(
       .map(_ >> allText)
   }
 
-  private def transformAsResults(sessionId: Int, rawResults: Seq[List[String]]) : Future[Seq[Result]] = {
+  private def extractRawCSVResults(file: File): Future[Seq[Seq[String]]] = Future {
+    val bufferedSource = Source.fromFile(file)
+    val extractedResults: Seq[Seq[String]] = bufferedSource.getLines.drop(9).foldLeft(Seq[Seq[String]]())(
+      (acc, line) => {
+        acc :+ line.split(",").map(_.replaceAll("\"", "")).map(_.trim).toSeq
+      }
+    )
+    bufferedSource.close
+
+    Logger.info(extractedResults.toString())
+
+    extractedResults
+  }
+
+
+  private def transformAsResults(sessionId: Int, rawResults: Seq[Seq[String]]) : Future[Seq[Result]] = {
     def getDriver(driverName: String) : Future[Driver] = {
       driverDao.createIfNotExists(driverName)
     }
     def createResultWithDriver(drivers: Seq[Driver]) : Future[Seq[Result]] = {
       Future.sequence(
         rawResults.map { resultLine =>
-          getDriver(resultLine(5).toString).map { driver =>
+          getDriver(resultLine(7).toString).map { driver =>
             lineAsResult(resultLine).copy(
               sessionId = sessionId,
               driver = driver
@@ -129,27 +144,34 @@ class ResultsService @Inject()(
       championshipId  <- sessionsDao.getChampionshipId(sessionId)
       drivers         <- driverDao.getChampionshipDrivers(championshipId)
       results         <- createResultWithDriver(drivers)
-    } yield results
+    } yield {
+
+      Logger.info(results.toString())
+
+      results
+
+    }
 
   }
 
-  private def lineAsResult(line: Seq[Any]) : Result = {
+  private def lineAsResult(line: Seq[String]) : Result = {
+
     Result(
       0, // empty id
       line.head.toString.toInt, // position
-      line(1).toString.toInt, // class position
-      line(3).toString, // classCar
-      line(4).toString, // carNumber
+      0, // class position - not in the CSV file
+      line(2).toString, // classCar
+      line(9).toString, // carNumber
       Driver(0, "", Driver.DEFAULT_CATEGORY, None), // driver
-      line(6).toString.toInt,
-      line(9).toString,
-      line(10).toString.toInt,
-      line(11).toString,
-      line(12).toString,
-      line(13).toString, //
-      line(14).toString.toInt,
-      line(15).toString.toInt,
-      line(16).toString,
+      line(8).toString.toInt, // start position
+      line(12).toString, // interval
+      line(13).toString.toInt, // lapsLed
+      line(15).toString, // averageLap
+      line(16).toString, // fastestLap
+      line(17).toString, // fastestLapNumber
+      line(18).toString.toInt, // totalLaps
+      line(19).toString.toInt, // incidents
+      "", // club - not in csv file
       0, // 0 points
       0, // 0 bonus points
       0, // 0 penalty points

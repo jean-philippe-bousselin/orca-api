@@ -16,5 +16,4 @@ class TeamService @Inject()(
     teamDao.add(team)
   }
 
-
 }
