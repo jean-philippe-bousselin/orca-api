@@ -61,6 +61,7 @@ class ResultsService @Inject()(
           transformedResults <- transformAsResults(session.id, extractedLines)
           finalResults       <- calculatePointsAndPenalties(session.sessionType, transformedResults)
           insertedResults    <- resultDao.insertList(finalResults)
+          // @TODO this shouldnt be part of this process, the front should orchestrate standings recalculation
           standings          <- championshipsService.buildStandings(championshipId)
         } yield insertedResults
       }
@@ -82,14 +83,15 @@ class ResultsService @Inject()(
       }
       if(sessionType.incidentsLimit != 0) {
         val penaltyPoints = (result.incidents / sessionType.incidentsLimit) * sessionType.penaltyPoints
+        val bonusPoints = result.incidents match {
+          case 0 => sessionType.bonusPoints
+          case _ => 0
+        }
         result.copy(
           points = points,
-          bonusPoints = result.incidents match {
-            case 0 => sessionType.bonusPoints
-            case _ => 0
-          },
+          bonusPoints = bonusPoints,
           penaltyPoints = penaltyPoints,
-          finalPoints = points - penaltyPoints
+          finalPoints = points - penaltyPoints + bonusPoints
         )
       } else {
         result

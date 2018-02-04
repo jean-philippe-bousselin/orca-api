@@ -26,6 +26,7 @@ case class Standings(
     // @TODO bonus points
     copy(
       penaltyPoints = penaltyPoints + result.penaltyPoints,
+      bonusPoints = bonusPoints + result.bonusPoints,
       wins = wins + (if(result.position == 1) 1 else 0),
       poles = poles + (if(result.startPosition == 1) 1 else 0),
       top5s = top5s + (if(result.position <= 5) 1 else 0),
@@ -46,7 +47,7 @@ object Standings {
       result.position,
       result.driver,
       0, // beh next
-      0, // @TODO bonus points must be added to results,
+      result.bonusPoints,
       result.penaltyPoints,
       1, // starts
       if(result.position == 1) 1 else 0, // wins
