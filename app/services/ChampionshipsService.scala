@@ -60,7 +60,11 @@ class ChampionshipsService @Inject()(
         }
       )
     }.flatMap { standingsList =>
-      standingsDao.insertList(id, standingsList)
+      // recalculate positions according to points
+      val standingsWithUpdatedPositions = standingsList.sortWith((r1, r2) => {
+        r1.points > r2.points
+      }).zipWithIndex.map { resWithIndex =>resWithIndex._1.copy(position =  resWithIndex._2 + 1)}
+      standingsDao.insertList(id, standingsWithUpdatedPositions)
     }
   }
 

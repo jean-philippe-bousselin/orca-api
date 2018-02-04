@@ -31,7 +31,7 @@ case class Standings(
       top5s = top5s + (if(result.position <= 5) 1 else 0),
       top10s = top10s + (if(result.position <= 10) 1 else 0),
       incidents = incidents + result.incidents,
-      points = points + result.points
+      points = points + result.finalPoints
     )
   }
 
@@ -58,7 +58,7 @@ object Standings {
       0.0,
       0.0,
       0.0,
-      result.points
+      result.finalPoints
     )
   }
 

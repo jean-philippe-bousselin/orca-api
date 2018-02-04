@@ -73,7 +73,9 @@ class ResultsService @Inject()(
     results: Seq[Result]
   ) : Future[Seq[Result]] = Future {
 
-    results.map { result =>
+    results
+      .filter(_.totalLaps > 0) // filter out drivers that did not race
+      .map { result =>
       val points = result.position match {
         case pos if pos < sessionType.points.length => sessionType.points(pos - 1)
         case _ => 0
