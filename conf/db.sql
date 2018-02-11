@@ -1,3 +1,11 @@
+create table rcm.categories
+(
+  id int auto_increment
+    primary key,
+  name varchar(30) not null
+)
+;
+
 create table rcm.championships
 (
   id int auto_increment
@@ -8,18 +16,48 @@ create table rcm.championships
 )
 ;
 
+create table rcm.competitors
+(
+  id int auto_increment
+    primary key,
+  driver_id int null,
+  championship_id int null,
+  team_id int null,
+  category_id int null,
+  constraint championships_competitors_fk
+  foreign key (championship_id) references rcm.championships (id),
+  constraint category_competitors_fk
+  foreign key (category_id) references rcm.categories (id)
+)
+;
+
+create index category_competitors_fk
+  on competitors (category_id)
+;
+
+create index championships_competitors_fk
+  on competitors (championship_id)
+;
+
+create index driver_fk
+  on competitors (driver_id)
+;
+
+create index teams_competitors_fk
+  on competitors (team_id)
+;
+
 create table rcm.drivers
 (
   id int auto_increment
     primary key,
-  name varchar(250) not null,
-  team_id int null,
-  category varchar(5) null
+  name varchar(250) not null
 )
 ;
 
-create index drivers_teams_id_fk
-  on drivers (team_id)
+alter table competitors
+  add constraint driver_fk
+foreign key (driver_id) references rcm.drivers (id)
 ;
 
 create table rcm.results
@@ -43,10 +81,10 @@ create table rcm.results
   session_id int null,
   interval_time varchar(50) null,
   car_number varchar(10) null,
-  driver_id int null,
   bonus_points int null,
-  constraint results_drivers_id_fk
-  foreign key (driver_id) references rcm.drivers (id)
+  competitor_id int null,
+  constraint results_competitors__fk
+  foreign key (competitor_id) references rcm.competitors (id)
 )
 ;
 
@@ -54,8 +92,8 @@ create index results_sessions_id_fk
   on results (session_id)
 ;
 
-create index results_drivers_id_fk
-  on results (driver_id)
+create index results_competitors__fk
+  on results (competitor_id)
 ;
 
 create table rcm.session_type
@@ -116,7 +154,6 @@ create table rcm.standings
   id int auto_increment
     primary key,
   position int null,
-  driver_id int null,
   behind_next int null,
   bonus_points int null,
   penalty_points int null,
@@ -132,15 +169,10 @@ create table rcm.standings
   inc_per_corner float null,
   championship_id int null,
   points int null,
-  constraint standings_drivers_id_fk
-  foreign key (driver_id) references rcm.drivers (id),
+  competitor_id int null,
   constraint standings_championships_id_fk
   foreign key (championship_id) references rcm.championships (id)
 )
-;
-
-create index standings_drivers_id_fk
-  on standings (driver_id)
 ;
 
 create index standings_championships_id_fk
@@ -155,8 +187,8 @@ create table rcm.teams
 )
 ;
 
-alter table drivers
-  add constraint drivers_teams_id_fk
+alter table competitors
+  add constraint teams_competitors_fk
 foreign key (team_id) references rcm.teams (id)
 ;
 
