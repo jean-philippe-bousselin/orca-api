@@ -23,11 +23,12 @@ class CompetitorDao @Inject()(
   override val table: Table = Table(
     "competitors",
     "co",
-    Seq("driver_id", "team_id", "championship_id", "category_id"),
+    Seq("id", "driver_id", "team_id", "championship_id", "category_id"),
     Map(
       "driver_id" -> driverDao.table,
       "team_id" -> teamDao.table,
-      "category_id" -> categoryDao.table
+      "category_id" -> categoryDao.table,
+      "championship_id" -> championshipDao.table
     )
   )
 
@@ -42,6 +43,7 @@ class CompetitorDao @Inject()(
 
   override def resultSetToModel(resultSet: ResultSet): Competitor = {
     Competitor(
+      resultSet.getInt(table.alias + ".id"),
       driverDao.resultSetToModel(resultSet),
       resultSet.getInt(table.alias + ".championship_id"),
       teamDao.resultSetToModel(resultSet),
@@ -61,9 +63,9 @@ class CompetitorDao @Inject()(
             defaultTeam <- teamDao.getDefault()
             defaultCategory <- categoryDao.getDefault()
           } yield {
-            val newCompetior = Competitor(driver, championshipId, defaultTeam, defaultCategory)
-            insert(getColumnMapping(newCompetior))
-            newCompetior
+            val newCompetitor = Competitor(0, driver, championshipId, defaultTeam, defaultCategory)
+            val id = insert(getColumnMapping(newCompetitor))
+            newCompetitor.copy(id = id)
           }
       }
     }

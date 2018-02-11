@@ -12,7 +12,7 @@ import scala.concurrent.Future
 
 class StandingsDao @Inject()(
   override val db: Database,
-  driverDao: DriverDao
+  competitorsDao: CompetitorDao
 ) extends DaoTrait with ChampionshipIdMapping {
 
   type T = Standings
@@ -23,19 +23,19 @@ class StandingsDao @Inject()(
     "standings",
     "sta",
     Seq(
-      "id", "position", "driver_id", "behind_next", "bonus_points", "penalty_points", "starts", "wins",
+      "id", "position", "competitor_id", "behind_next", "bonus_points", "penalty_points", "starts", "wins",
       "poles", "top5s", "top10s", "incidents", "corners", "inc_per_race", "inc_per_lap", "inc_per_corner",
       "points", "championship_id"
     ),
     Map(
-      "driver_id" -> driverDao.table
+      "competitor_id" -> competitorsDao.table
     )
   )
 
   override def getColumnMapping(standings: Standings): Map[String, Any] = {
     Map(
       "position" -> standings.position,
-      "driver_id" -> standings.driver.id,
+      "competitor_id" -> standings.competitor.id,
       "behind_next" -> standings.behindNext,
       "bonus_points" -> standings.bonusPoints,
       "penalty_points" -> standings.penaltyPoints,
@@ -57,7 +57,7 @@ class StandingsDao @Inject()(
     Standings(
       resultSet.getInt(table.alias + ".id"),
       resultSet.getInt(table.alias + ".position"),
-      driverDao.resultSetToModel(resultSet),
+      competitorsDao.resultSetToModel(resultSet),
       resultSet.getInt(table.alias + ".behind_next"),
       resultSet.getInt(table.alias + ".bonus_points"),
       resultSet.getInt(table.alias + ".penalty_points"),

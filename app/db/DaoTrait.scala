@@ -6,6 +6,7 @@ import db.queryBuilder._
 import play.api.Logger
 import play.api.db.Database
 
+import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -97,9 +98,7 @@ trait DaoTrait {
 
   def getWhere(where: Seq[Predicate])(implicit ct: ClassTag[T]) : Future[Seq[T]] = Future {
     executeBuilder(where.foldLeft(getSelectBaseBuilder())(
-      (builder, clause) => {
-        builder.where(clause)
-      }
+      (builder, clause) => builder.where(clause)
     ))
   }
 
@@ -140,12 +139,15 @@ trait DaoTrait {
     )
   }
   protected def addJoins(builder: QueryBuilder) : QueryBuilder = {
+    resolveDependencyTree(table, builder)
+  }
+
+  def resolveDependencyTree(table: Table, builder: QueryBuilder) : QueryBuilder = {
     table.dependencies.foldLeft(builder)(
       (builder, dependency) => {
-        dependency._2.dependencies.foldLeft(builder.join(JoinStatement(table, dependency._2, dependency._1, "id")))(
-          (builder2, dep2) => {
-            builder2.join(JoinStatement(dependency._2, dep2._2, dep2._1, "id"))
-          }
+        resolveDependencyTree(
+          dependency._2,
+          builder.join(JoinStatement(table, dependency._2, dependency._1, "id"))
         )
       }
     )

@@ -1,23 +1,19 @@
 package db
 
-import java.sql.{Connection, ResultSet}
+import java.sql.ResultSet
 import javax.inject.Inject
 
 import db.queryBuilder.{Predicate, SqlComparators, Table}
-import models.{Competitor, Result, Session}
-import play.api.Logger
+import models.Result
 import play.api.db._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Future}
-import scala.reflect.ClassTag
-import scala.concurrent.duration._
+import scala.concurrent.Future
 
 class ResultDao @Inject()(
   override val db: Database,
   sessionDao: SessionDao,
-  driverDao: DriverDao,
-  competitorDao: CompetitorDao
+  competitorsDao: CompetitorDao
 ) extends DaoTrait {
 
   type T = Result
@@ -25,12 +21,12 @@ class ResultDao @Inject()(
   override val table = Table(
     "results",
     "r",
-    Seq("id", "position", "class_position", "class_car", "car_number", "driver_id", "start_position",
+    Seq("id", "position", "class_position", "class_car", "car_number", "competitor_id", "start_position",
       "interval_time", "laps_led", "average_lap", "fastest_lap", "fastest_lap_number",
       "total_laps", "incidents", "club", "points", "bonus_points", "penalty_points", "final_points", "session_id"),
     Map(
       "session_id" -> sessionDao.table,
-      "driver_id" -> driverDao.table
+      "competitor_id" -> competitorsDao.table
     )
   )
 
@@ -41,7 +37,7 @@ class ResultDao @Inject()(
       "class_position" -> result.classPosition,
       "class_car" -> result.classCar,
       "car_number" -> result.carNumber,
-      "driver_id" -> result.competitor.driver.id,
+      "competitor_id" -> result.competitor.id,
       "start_position" -> result.startPosition,
       "interval_time" -> result.interval,
       "laps_led" -> result.lapsLed,
@@ -60,23 +56,13 @@ class ResultDao @Inject()(
   }
 
   override def resultSetToModel(resultSet: ResultSet) : Result = {
-
-    val sessionId = resultSet.getInt(table.alias + ".session_id")
-    val driverId = resultSet.getInt(table.alias + ".driver_id")
-
-    // gather competitor from session id and driver id
-    val competitor: Competitor = Await.result(for {
-      championshipId <- sessionDao.getChampionshipId(sessionId)
-      competitorOpt <- competitorDao.getFromDriverId(driverId, championshipId)
-    } yield competitorOpt.get, 15.seconds)
-
     Result(
       resultSet.getInt(table.alias + ".id"),
       resultSet.getInt(table.alias + ".position"),
       resultSet.getInt(table.alias + ".class_position"),
       resultSet.getString(table.alias + ".class_car"),
       resultSet.getString(table.alias + ".car_number"),
-      competitor,
+      competitorsDao.resultSetToModel(resultSet),
       resultSet.getInt(table.alias + ".start_position"),
       resultSet.getString(table.alias + ".interval_time"),
       resultSet.getInt(table.alias + ".laps_led"),
@@ -90,7 +76,7 @@ class ResultDao @Inject()(
       resultSet.getInt(table.alias + ".bonus_points"),
       resultSet.getInt(table.alias + ".penalty_points"),
       resultSet.getInt(table.alias + ".final_points"),
-      sessionId
+      resultSet.getInt(table.alias + ".session_id")
     )
   }
 

@@ -14,6 +14,9 @@ case class Table private(
   def getProjectionAsString() : String = {
     getProjection().mkString(", ")
   }
+  def getDependencyTables() : Seq[Table] = {
+    dependencies.values.toList
+  }
 
 }
 

@@ -3,6 +3,7 @@ package models
 import play.api.libs.json.Json
 
 case class Competitor(
+ id: Int,
   driver: Driver,
   championshipId: Int,
   team: Team,
@@ -16,6 +17,7 @@ object Competitor {
   val DEFAULT_CATEGORY = Category.OVERALL_CATEGORY_ID
 
   def getEmpty() : Competitor = Competitor(
+    0,
     Driver(0, ""),
     0,
     Team(0, ""),

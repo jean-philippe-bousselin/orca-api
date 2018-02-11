@@ -5,7 +5,7 @@ import play.api.libs.json.{Json, OWrites}
 case class Standings(
   id: Int,
   position: Int,
-  driver: Driver,
+  competitor: Competitor,
   behindNext: Int,
   bonusPoints: Int,
   penaltyPoints: Int,
@@ -23,7 +23,6 @@ case class Standings(
 ) {
 
   def updateWithResult(result: Result) : Standings = {
-    // @TODO bonus points
     copy(
       penaltyPoints = penaltyPoints + result.penaltyPoints,
       bonusPoints = bonusPoints + result.bonusPoints,
@@ -45,7 +44,7 @@ object Standings {
     Standings(
       0, // id
       result.position,
-      result.competitor.driver,
+      result.competitor,
       0, // beh next
       result.bonusPoints,
       result.penaltyPoints,
