@@ -11,47 +11,35 @@ import play.api.db._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class DriverDao @Inject()(override val db: Database, teamDao: TeamDao) extends DaoTrait {
+class DriverDao @Inject()(override val db: Database) extends DaoTrait {
 
   type T = Driver
 
   override val table = Table(
     "drivers",
     "d",
-    Seq("id", "name", "category","team_id"),
-    Map("team_id" -> teamDao.table)
+    Seq("id", "name")
   )
 
   override val orderByDefaultColumns = Seq("name")
 
   override def getColumnMapping(driver: Driver): Map[String, Any] = {
-    Map(
-      "name" -> driver.name,
-      "category" -> driver.category,
-      "team_id" -> driver.team.map(_.id).getOrElse(Team.TEAM_PRIVATEERS_ID) // defaults privateers team
-    )
+    Map("name" -> driver.name)
   }
 
   override def resultSetToModel(resultSet: ResultSet) : Driver = {
     Driver(
       resultSet.getInt(table.alias + ".id"),
-      resultSet.getString(table.alias + ".name"),
-      resultSet.getString(table.alias + ".category"),
-      Some(teamDao.resultSetToModel(resultSet))
+      resultSet.getString(table.alias + ".name")
     )
-  }
-
-  // @TODO we need to implement a link to championships somehow
-  def getChampionshipDrivers(championshipId: Int) : Future[Seq[Driver]] = {
-    getAll()
   }
 
   def createIfNotExists(name: String) : Future[Driver] = {
     find(Predicate("name", name, SqlComparators.EQUALS, table)).map {
       case Some(d) => d
       case None =>
-        val id = insert(getColumnMapping(Driver(0, name, Driver.DEFAULT_CATEGORY, None)))
-        Driver(id, name, Driver.DEFAULT_CATEGORY, None)
+        val id = insert(getColumnMapping(Driver(0, name)))
+        Driver(id, name)
     }
   }
 

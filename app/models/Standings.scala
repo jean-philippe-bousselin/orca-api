@@ -45,7 +45,7 @@ object Standings {
     Standings(
       0, // id
       result.position,
-      result.driver,
+      result.competitor.driver,
       0, // beh next
       result.bonusPoints,
       result.penaltyPoints,

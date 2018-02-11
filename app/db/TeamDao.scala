@@ -44,4 +44,8 @@ class TeamDao @Inject()(
     }
   }
 
+  def getDefault() : Future[Team] = {
+    find(Team.TEAM_PRIVATEERS_ID).map(_.get)
+  }
+
 }

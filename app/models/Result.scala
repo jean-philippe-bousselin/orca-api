@@ -8,7 +8,7 @@ case class Result(
   classPosition: Int,
   classCar: String,
   carNumber: String,
-  driver: Driver,
+  competitor: Competitor,
   startPosition: Int,
   interval: String,
   lapsLed: Int,
@@ -26,5 +26,5 @@ case class Result(
 ) {}
 
 object Result {
-  implicit val championshipWrites: OWrites[Result] = Json.writes[Result]
+  implicit val format = Json.format[Result]
 }

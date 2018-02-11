@@ -11,7 +11,7 @@ case class Team(
 ) {}
 
 object Team {
-  implicit val writes: OWrites[Team] = Json.writes[Team]
+  implicit val format = Json.format[Team]
 
   val TEAM_PRIVATEERS_ID = 1
 

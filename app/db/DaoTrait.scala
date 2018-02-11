@@ -77,19 +77,16 @@ trait DaoTrait {
   def find(id: Int)(implicit ct: ClassTag[T]) : Future[Option[T]] = {
     find(Predicate("id", id, SqlComparators.EQUALS, table))
   }
-
   def find(whereClause: Predicate)(implicit ct: ClassTag[T]) : Future[Option[T]] = {
-    getWhere(Seq(whereClause)).map {
+    find(Seq(whereClause))
+  }
+  def find(whereClause: Seq[Predicate])(implicit ct: ClassTag[T]) : Future[Option[T]] = {
+    getWhere(whereClause).map {
       case head :: list => Some(head)
       case _ => None
     }
   }
 
-  /**
-    *
-    * @param ct
-    * @return
-    */
   def getAll()(implicit ct: ClassTag[T]) : Future[Seq[T]] = {
     getWhere(Seq.empty)
   }
@@ -99,18 +96,11 @@ trait DaoTrait {
   }
 
   def getWhere(where: Seq[Predicate])(implicit ct: ClassTag[T]) : Future[Seq[T]] = Future {
-    where match {
-      case Nil => executeBuilder(getSelectBaseBuilder())
-      case head :: Nil => executeBuilder(getSelectBaseBuilder().where(head))
-      case head :: list =>
-        val builder = getSelectBaseBuilder().where(head)
-        val foldedBuilder = list.foldLeft(builder)(
-          (builder, clause) => {
-            builder.and(clause)
-          }
-        )
-        executeBuilder(foldedBuilder)
-    }
+    executeBuilder(where.foldLeft(getSelectBaseBuilder())(
+      (builder, clause) => {
+        builder.where(clause)
+      }
+    ))
   }
 
   // @TODO refactor this, executeBuilder should be more generic

@@ -63,7 +63,10 @@ case class QueryBuilder private (
   }
 
   def where(clause: Predicate) : QueryBuilder = {
-    copy(where = Some(clause))
+    where match {
+      case Some(c) => and(clause)
+      case None => copy(where = Some(clause))
+    }
   }
 
   def and(clause: Predicate) : QueryBuilder = {

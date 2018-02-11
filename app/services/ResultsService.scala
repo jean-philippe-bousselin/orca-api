@@ -1,7 +1,7 @@
 package services
 
-import models.{Driver, Result, Session, SessionType}
-import db.{DriverDao, ResultDao, SessionDao}
+import models.{Driver, Result, Session, SessionType, Competitor}
+import db.{CompetitorDao, DriverDao, ResultDao, SessionDao}
 import java.io.File
 import javax.inject.Inject
 
@@ -24,6 +24,7 @@ class ResultsService @Inject()(
   sessionsDao: SessionDao,
   resultDao: ResultDao,
   driverDao: DriverDao,
+  competitorDao: CompetitorDao,
   championshipsDao: ChampionshipsService,
   championshipsService: ChampionshipsService
 ){
@@ -58,7 +59,7 @@ class ResultsService @Inject()(
         for {
           championshipId     <- sessionsDao.getChampionshipId(session.id)
           extractedLines     <- extractRawCSVResults(file.ref.file)//(browser)
-          transformedResults <- transformAsResults(session.id, extractedLines)
+          transformedResults <- transformAsResults(championshipId, session.id, extractedLines)
           finalResults       <- calculatePointsAndPenalties(session.sessionType, transformedResults)
           insertedResults    <- resultDao.insertList(finalResults)
           // @TODO this shouldnt be part of this process, the front should orchestrate standings recalculation
@@ -127,34 +128,21 @@ class ResultsService @Inject()(
   }
 
 
-  private def transformAsResults(sessionId: Int, rawResults: Seq[Seq[String]]) : Future[Seq[Result]] = {
-    def getDriver(driverName: String) : Future[Driver] = {
-      driverDao.createIfNotExists(driverName)
+  private def transformAsResults(championshipId: Int, sessionId: Int, rawResults: Seq[Seq[String]]) : Future[Seq[Result]] = {
+    def getCompetitor(driverName: String) : Future[Competitor] = {
+      competitorDao.createIfNotExists(driverName, championshipId)
     }
-    def createResultWithDriver(drivers: Seq[Driver]) : Future[Seq[Result]] = {
-      Future.sequence(
-        rawResults.map { resultLine =>
-          getDriver(resultLine(7).toString).map { driver =>
-            lineAsResult(resultLine).copy(
-              sessionId = sessionId,
-              driver = driver
-            )
-          }
+
+    Future.sequence(
+      rawResults.map { resultLine =>
+        getCompetitor(resultLine(7).toString).map { competitor =>
+          lineAsResult(resultLine).copy(
+            sessionId = sessionId,
+            competitor = competitor
+          )
         }
-      )
-    }
-
-    for {
-      championshipId  <- sessionsDao.getChampionshipId(sessionId)
-      drivers         <- driverDao.getChampionshipDrivers(championshipId)
-      results         <- createResultWithDriver(drivers)
-    } yield {
-
-      Logger.info(results.toString())
-
-      results
-
-    }
+      }
+    )
 
   }
 
@@ -166,7 +154,7 @@ class ResultsService @Inject()(
       0, // class position - not in the CSV file
       line(2).toString, // classCar
       line(9).toString, // carNumber
-      Driver(0, "", Driver.DEFAULT_CATEGORY, None), // driver
+      Competitor.getEmpty(), // competitor
       line(8).toString.toInt, // start position
       line(12).toString, // interval
       line(13).toString.toInt, // lapsLed

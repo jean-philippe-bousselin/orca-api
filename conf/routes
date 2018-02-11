@@ -19,7 +19,8 @@ POST       /championships/:id/sessions      controllers.ChampionshipsController.
 POST       /championships                   controllers.ChampionshipsController.add
 POST       /championships/:id/configure     controllers.ChampionshipsController.configure(id: Int)
 POST       /championships/:id/teams         controllers.ChampionshipsController.addTeam(id: Int)
-PUT        /championships/:id/drivers       controllers.ChampionshipsController.updateDriver(id: Int)
+
+# PUT        /championships/:id/drivers       controllers.ChampionshipsController.updateDriver(id: Int)
 
 # Sessions
 GET        /sessions/:id                   controllers.SessionsController.find(id: Int)

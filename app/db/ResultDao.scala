@@ -4,17 +4,20 @@ import java.sql.{Connection, ResultSet}
 import javax.inject.Inject
 
 import db.queryBuilder.{Predicate, SqlComparators, Table}
-import models.{Result, Session}
+import models.{Competitor, Result, Session}
+import play.api.Logger
 import play.api.db._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.reflect.ClassTag
+import scala.concurrent.duration._
 
 class ResultDao @Inject()(
   override val db: Database,
   sessionDao: SessionDao,
-  driverDao: DriverDao
+  driverDao: DriverDao,
+  competitorDao: CompetitorDao
 ) extends DaoTrait {
 
   type T = Result
@@ -38,7 +41,7 @@ class ResultDao @Inject()(
       "class_position" -> result.classPosition,
       "class_car" -> result.classCar,
       "car_number" -> result.carNumber,
-      "driver_id" -> result.driver.id,
+      "driver_id" -> result.competitor.driver.id,
       "start_position" -> result.startPosition,
       "interval_time" -> result.interval,
       "laps_led" -> result.lapsLed,
@@ -57,13 +60,23 @@ class ResultDao @Inject()(
   }
 
   override def resultSetToModel(resultSet: ResultSet) : Result = {
+
+    val sessionId = resultSet.getInt(table.alias + ".session_id")
+    val driverId = resultSet.getInt(table.alias + ".driver_id")
+
+    // gather competitor from session id and driver id
+    val competitor: Competitor = Await.result(for {
+      championshipId <- sessionDao.getChampionshipId(sessionId)
+      competitorOpt <- competitorDao.getFromDriverId(driverId, championshipId)
+    } yield competitorOpt.get, 15.seconds)
+
     Result(
       resultSet.getInt(table.alias + ".id"),
       resultSet.getInt(table.alias + ".position"),
       resultSet.getInt(table.alias + ".class_position"),
       resultSet.getString(table.alias + ".class_car"),
       resultSet.getString(table.alias + ".car_number"),
-      driverDao.resultSetToModel(resultSet),
+      competitor,
       resultSet.getInt(table.alias + ".start_position"),
       resultSet.getString(table.alias + ".interval_time"),
       resultSet.getInt(table.alias + ".laps_led"),
@@ -77,7 +90,7 @@ class ResultDao @Inject()(
       resultSet.getInt(table.alias + ".bonus_points"),
       resultSet.getInt(table.alias + ".penalty_points"),
       resultSet.getInt(table.alias + ".final_points"),
-      resultSet.getInt(table.alias + ".session_id")
+      sessionId
     )
   }
 

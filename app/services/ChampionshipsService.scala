@@ -53,7 +53,7 @@ class ChampionshipsService @Inject()(
     }.map { resultsList =>
       resultsList.flatten.foldLeft(Seq[Standings]())(
         (standings, result) => {
-          standings.find(s => s.driver.id == result.driver.id) match {
+          standings.find(s => s.driver.id == result.competitor.driver.id) match {
             case Some(s) => standings.updated(standings.indexOf(s),s.updateWithResult(result))
             case None => standings ++ Seq(Standings.generateFromResult(result))
           }
