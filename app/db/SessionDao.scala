@@ -29,7 +29,7 @@ class SessionDao @Inject()(
     )
   )
 
-  override val orderByDefaultColumns: Seq[String] = Seq("date")
+  override val orderByDefaultColumns: Seq[String] = Seq("date", "time")
 
   override def getColumnMapping(session: Session): Map[String, Any] = {
     Map(

@@ -25,7 +25,6 @@ class DriverDao @Inject()(override val db: Database, teamDao: TeamDao) extends D
   override val orderByDefaultColumns = Seq("name")
 
   override def getColumnMapping(driver: Driver): Map[String, Any] = {
-    Logger.error(driver.toString)
     Map(
       "name" -> driver.name,
       "category" -> driver.category,
