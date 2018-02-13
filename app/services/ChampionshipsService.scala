@@ -11,12 +11,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class ChampionshipsService @Inject()(
-  championshipDao: ChampionshipDao,
-  standingsDao: StandingsDao,
-  sessionDao: SessionDao,
-  resultDao: ResultDao,
-  driverDao: DriverDao,
-  teamDao: TeamDao
+                                      championshipDao: ChampionshipDao,
+                                      driverStandingsDao: StandingsDao,
+                                      sessionDao: SessionDao,
+                                      resultDao: ResultDao,
+                                      driverDao: DriverDao,
+                                      teamDao: TeamDao,
+                                      teamStandingsDao: TeamStandingsDao
 ) {
 
   def add(championship: Championship) : Future[Championship] = {
@@ -39,33 +40,54 @@ class ChampionshipsService @Inject()(
     championshipDao.getConfiguration(id)
   }
 
-  def getStandings(id: Int) : Future[Seq[Standings]] = {
-    standingsDao.getForChampionship(id)
+  def getDriverStandings(id: Int) : Future[Seq[Standings]] = {
+    driverStandingsDao.getForChampionship(id)
+  }
+  def getTeamStandings(id: Int) : Future[Seq[TeamStandings]] = {
+    teamStandingsDao.getForChampionship(id)
   }
 
-  def buildStandings(id: Int) : Future[Seq[Standings]] = {
+  def buildStandings(id: Int) : Future[Boolean] = {
     sessionDao.getAll(id).flatMap { sessionList =>
-      Future.sequence(
-        sessionList.map { session =>
-          resultDao.getForSession(session.id)
-        }
-      )
-    }.map { resultsList =>
-      resultsList.flatten.foldLeft(Seq[Standings]())(
-        (standings, result) => {
-          standings.find(s => s.competitor.id == result.competitor.id) match {
-            case Some(s) => standings.updated(standings.indexOf(s),s.updateWithResult(result))
-            case None => standings ++ Seq(Standings.generateFromResult(result))
-          }
-        }
-      )
-    }.flatMap { standingsList =>
-      // recalculate positions according to points
-      val standingsWithUpdatedPositions = standingsList.sortWith((r1, r2) => {
-        r1.points > r2.points
-      }).zipWithIndex.map { resWithIndex =>resWithIndex._1.copy(position =  resWithIndex._2 + 1)}
-      standingsDao.insertList(id, standingsWithUpdatedPositions)
+      Future.sequence(sessionList.map { session => resultDao.getForSession(session.id) })
+    }.flatMap { resultsList =>
+      Future.sequence(Seq(
+        driverStandingsDao.insertList(id, buildDriverStandings(resultsList.flatten)),
+        teamStandingsDao.insertList(id, buildTeamStandings(resultsList.flatten))
+      )).map(x => true)
     }
+  }
+
+  private def buildTeamStandings(results: Seq[Result]) : Seq[TeamStandings] = {
+    val standingsList: Seq[TeamStandings] = results.foldLeft(Seq[TeamStandings]())(
+      (standings, result) => {
+        standings
+          .filter(_.team.id != Team.TEAM_PRIVATEERS_ID) // privateers do not count in the standings
+          .find(s => s.team.id == result.competitor.team.id) match {
+          case Some(s) => standings.updated(standings.indexOf(s),s.updateWithResult(result))
+          case None => standings ++ Seq(TeamStandings.generateFromResult(result))
+        }
+      }
+    )
+    // recalculate positions according to points
+    standingsList.sortWith((r1, r2) => {
+      r1.points > r2.points
+    }).zipWithIndex.map { resWithIndex =>resWithIndex._1.copy(position =  resWithIndex._2 + 1)}
+  }
+
+  private def buildDriverStandings(results: Seq[Result]) : Seq[Standings] = {
+    val standingsList: Seq[Standings] = results.foldLeft(Seq[Standings]())(
+      (standings, result) => {
+        standings.find(s => s.competitor.id == result.competitor.id) match {
+          case Some(s) => standings.updated(standings.indexOf(s),s.updateWithResult(result))
+          case None => standings ++ Seq(Standings.generateFromResult(result))
+        }
+      }
+    )
+    // recalculate positions according to points
+    standingsList.sortWith((r1, r2) => {
+      r1.points > r2.points
+    }).zipWithIndex.map { resWithIndex =>resWithIndex._1.copy(position =  resWithIndex._2 + 1)}
   }
 
   def drivers() : Future[Seq[Driver]] = {

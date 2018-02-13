@@ -81,10 +81,19 @@ class ChampionshipsController @Inject()(
     }
   }
 
-  def standings(id: Int) = Action.async { implicit request =>
-    championshipService.getStandings(id).map { standings =>
+  def driverStandings(id: Int) = Action.async { implicit request =>
+    championshipService.getDriverStandings(id).map { standings =>
       Ok(Json.toJson(standings))
     }
+  }
+  def teamStandings(id: Int) = Action.async { implicit request =>
+    championshipService.getTeamStandings(id).map { standings =>
+      Ok(Json.toJson(standings))
+    }
+  }
+
+  def buildStandings(id: Int) = Action.async { implicit request =>
+    championshipService.buildStandings(id).map(x => NoContent)
   }
 
   def drivers(id: Int) = Action.async { implicit request =>

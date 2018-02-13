@@ -62,8 +62,6 @@ class ResultsService @Inject()(
           transformedResults <- transformAsResults(championshipId, session.id, extractedLines)
           finalResults       <- calculatePointsAndPenalties(session.sessionType, transformedResults)
           insertedResults    <- resultDao.insertList(finalResults)
-          // @TODO this shouldnt be part of this process, the front should orchestrate standings recalculation
-          standings          <- championshipsService.buildStandings(championshipId)
         } yield insertedResults
       }
     )
