@@ -60,7 +60,14 @@ class ChampionshipsService @Inject()(
 
   private def buildTeamStandings(results: Seq[Result]) : Seq[TeamStandings] = {
     val standingsList: Seq[TeamStandings] = results
-      .filter(_.competitor.team.id != Team.TEAM_PRIVATEERS_ID) // privateers do not count in the standings
+      // privateers do not count in the standings
+      .filter(_.competitor.team.id != Team.TEAM_PRIVATEERS_ID)
+      // only get the two competitors with the most points of each teams
+      .groupBy(_.sessionId)
+      .flatMap { _._2.groupBy(_.competitor.team.id)
+        .flatMap(_._2.sortBy(_.position).slice(0, 2)) // @TODO this should be configuration
+      }
+      // then proceed to standings calculation
       .foldLeft(Seq[TeamStandings]())(
       (standings, result) => {
         standings.find(s => s.team.id == result.competitor.team.id) match {
