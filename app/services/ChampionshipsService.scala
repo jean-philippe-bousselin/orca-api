@@ -59,11 +59,11 @@ class ChampionshipsService @Inject()(
   }
 
   private def buildTeamStandings(results: Seq[Result]) : Seq[TeamStandings] = {
-    val standingsList: Seq[TeamStandings] = results.foldLeft(Seq[TeamStandings]())(
+    val standingsList: Seq[TeamStandings] = results
+      .filter(_.competitor.team.id != Team.TEAM_PRIVATEERS_ID) // privateers do not count in the standings
+      .foldLeft(Seq[TeamStandings]())(
       (standings, result) => {
-        standings
-          .filter(_.team.id != Team.TEAM_PRIVATEERS_ID) // privateers do not count in the standings
-          .find(s => s.team.id == result.competitor.team.id) match {
+        standings.find(s => s.team.id == result.competitor.team.id) match {
           case Some(s) => standings.updated(standings.indexOf(s),s.updateWithResult(result))
           case None => standings ++ Seq(TeamStandings.generateFromResult(result))
         }
